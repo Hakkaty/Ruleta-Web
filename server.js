@@ -55,8 +55,7 @@ function generarClaveServidor() {
 
     return `VNG-${parte1}-${parte2}`;
 }
-
-const SERVER_ACCESS_KEY = generarClaveServidor();
+let SERVER_ACCESS_KEY = generarClaveServidor();
 
 // =====================================================
 // DATOS DE LA RULETA
@@ -271,6 +270,33 @@ io.on("connection", (socket) => {
     // -------------------------------------------------
     // ADMIN: AGREGAR PARTICIPANTE
     // -------------------------------------------------
+
+    // -------------------------------------------------
+// ADMIN: RESETEAR CLAVE DE ACCESO
+// -------------------------------------------------
+
+socket.on("adminResetAccessKey", () => {
+
+    const session = socket.data.session;
+
+    if (!session || session.type !== "admin") {
+        return;
+    }
+
+    // Generar una nueva clave
+    SERVER_ACCESS_KEY = generarClaveServidor();
+
+    // Actualizar la clave solamente para los administradores
+    socket.emit("serverKey", {
+        key: SERVER_ACCESS_KEY
+    });
+
+    // Confirmación
+    socket.emit("adminMessage", {
+        message: "La clave de acceso fue cambiada correctamente."
+    });
+
+});
 
     socket.on("adminAddParticipant", (data) => {
 

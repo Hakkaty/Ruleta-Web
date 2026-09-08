@@ -664,3 +664,64 @@ if (logoutButton) {
     );
 
 }
+// =====================================================
+// CAMBIAR CLAVE DE ACCESO
+// =====================================================
+
+const resetKeyButton =
+    document.getElementById("resetKeyButton");
+
+if (resetKeyButton) {
+
+    resetKeyButton.addEventListener(
+        "click",
+        () => {
+
+            if (!socket) {
+                mostrarMensaje(
+                    "No hay conexión con el servidor."
+                );
+                return;
+            }
+
+            const confirmar =
+                confirm(
+                    "¿Seguro que deseas cambiar la clave de acceso?\n\n" +
+                    "La clave anterior dejará de funcionar."
+                );
+
+            if (!confirmar) {
+                return;
+            }
+
+            resetKeyButton.disabled = true;
+
+            socket.emit(
+                "adminResetAccessKey"
+            );
+
+            setTimeout(() => {
+                resetKeyButton.disabled = false;
+            }, 1000);
+
+        }
+    );
+
+}
+
+
+// =====================================================
+// CONFIRMACIÓN DE CAMBIO DE CLAVE
+// =====================================================
+
+if (socket) {
+
+    socket.on("adminMessage", (data) => {
+
+        mostrarMensaje(
+            data.message
+        );
+
+    });
+
+}
