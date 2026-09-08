@@ -253,6 +253,13 @@ function conectarSocket(token) {
         spinButton.disabled = false;
 
     });
+    socket.on("adminMessage", (data) => {
+
+    mostrarMensaje(
+        data.message
+    );
+
+});
 
 }
 
@@ -706,22 +713,5 @@ if (resetKeyButton) {
 
         }
     );
-
-}
-
-
-// =====================================================
-// CONFIRMACIÓN DE CAMBIO DE CLAVE
-// =====================================================
-
-if (socket) {
-
-    socket.on("adminMessage", (data) => {
-
-        mostrarMensaje(
-            data.message
-        );
-
-    });
 
 }

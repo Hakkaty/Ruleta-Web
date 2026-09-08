@@ -98,16 +98,17 @@ app.get("/", (req, res) => {
 // =====================================================
 // LOGIN ADMINISTRADOR
 // =====================================================
-
 app.post("/api/admin/login", (req, res) => {
 
     const { password } = req.body;
 
     if (password !== ADMIN_PASSWORD) {
+
         return res.status(401).json({
             ok: false,
             message: "Clave de administrador incorrecta."
         });
+
     }
 
     const token = generarToken();
@@ -120,52 +121,156 @@ app.post("/api/admin/login", (req, res) => {
         ok: true,
         token
     });
-});
 
+});
 // =====================================================
-// COMPROBAR CLAVE DE PARTICIPANTE
+// REGISTRO AUTOMÁTICO DE PARTICIPANTE
 // =====================================================
 
 app.post("/api/participant/login", (req, res) => {
 
     const { name, accessKey } = req.body;
 
+    // ---------------------------------------------
+    // COMPROBAR DATOS
+    // ---------------------------------------------
+
     if (!name || !accessKey) {
+
         return res.status(400).json({
             ok: false,
             message: "Completa todos los campos."
         });
     }
 
+    // ---------------------------------------------
+    // COMPROBAR CLAVE
+    // ---------------------------------------------
+
     if (accessKey !== SERVER_ACCESS_KEY) {
+
         return res.status(401).json({
             ok: false,
             message: "La clave de acceso no es válida."
         });
     }
 
+    // ---------------------------------------------
+    // LIMPIAR NOMBRE
+    // ---------------------------------------------
+
     const cleanName = String(name).trim();
 
-    if (cleanName.length < 1 || cleanName.length > 30) {
+    if (
+        cleanName.length < 1 ||
+        cleanName.length > 30
+    ) {
+
         return res.status(400).json({
             ok: false,
             message: "El nombre debe tener entre 1 y 30 caracteres."
         });
     }
 
+    // ---------------------------------------------
+    // NO PERMITIR REGISTRO DURANTE EL GIRO
+    // ---------------------------------------------
+
+    if (roulette.spinning) {
+
+        return res.status(400).json({
+            ok: false,
+            message: "No puedes registrarte mientras la ruleta está girando."
+        });
+    }
+
+    // ---------------------------------------------
+    // COMPROBAR SI EL NOMBRE YA EXISTE
+    // ---------------------------------------------
+
+    const alreadyExists = participants.some(
+        p =>
+            p.name.toLowerCase() ===
+            cleanName.toLowerCase()
+    );
+
+    if (alreadyExists) {
+
+        return res.status(400).json({
+            ok: false,
+            message: "Ese nombre ya está registrado."
+        });
+    }
+
+    // ---------------------------------------------
+    // ELEGIR COLOR AUTOMÁTICAMENTE
+    // ---------------------------------------------
+
+    const color =
+        COLORS[
+            participants.length % COLORS.length
+        ];
+
+    // ---------------------------------------------
+    // CREAR PARTICIPANTE
+    // ---------------------------------------------
+
+    const participant = {
+
+        id: crypto.randomUUID(),
+
+        name: cleanName,
+
+        color: color
+
+    };
+
+    // ---------------------------------------------
+    // GUARDAR PARTICIPANTE
+    // ---------------------------------------------
+
+    participants.push(participant);
+
+    // ---------------------------------------------
+    // CREAR SESIÓN
+    // ---------------------------------------------
+
     const token = generarToken();
 
     sessions.set(token, {
+
         type: "participant",
-        name: cleanName
+
+        name: cleanName,
+
+        participantId: participant.id
+
     });
 
+    // ---------------------------------------------
+    // ACTUALIZAR ADMINISTRADOR AUTOMÁTICAMENTE
+    // ---------------------------------------------
+
+    broadcastState();
+
+    // ---------------------------------------------
+    // RESPONDER AL PARTICIPANTE
+    // ---------------------------------------------
+
     res.json({
+
         ok: true,
+
         token,
-        name: cleanName
+
+        name: cleanName,
+
+        participantId: participant.id
+
     });
+
 });
+
 
 // =====================================================
 // FUNCIONES DE AUTORIZACIÓN
