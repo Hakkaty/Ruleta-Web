@@ -372,6 +372,21 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("requestState", () => {
+
+    const session = socket.data.session;
+
+    if (!session) {
+        return;
+    }
+
+    socket.emit(
+        "stateUpdate",
+        getPublicState()
+    );
+
+});
+
     // -------------------------------------------------
     // ADMIN: AGREGAR PARTICIPANTE
     // -------------------------------------------------

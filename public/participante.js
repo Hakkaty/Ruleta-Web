@@ -4,26 +4,139 @@ let currentParticipants = [];
 let currentRotation = 0;
 
 // =====================================================
+// AUDIO
+// =====================================================
+
+let musicaFondo = null;
+let sonidoRuleta = null;
+let sonidoGanador = null;
+
+function prepararAudio() {
+
+    if (!musicaFondo) {
+        musicaFondo = new Audio("/audio/fondo.mp3");
+        musicaFondo.loop = true;
+        musicaFondo.volume = 0.20;
+    }
+
+    if (!sonidoRuleta) {
+        sonidoRuleta = new Audio("/audio/ruleta.mp3");
+        sonidoRuleta.volume = 0.50;
+    }
+
+    if (!sonidoGanador) {
+        sonidoGanador = new Audio("/audio/ganador.mp3");
+        sonidoGanador.volume = 0.80;
+    }
+}
+
+
+// =====================================================
+// INICIAR MÚSICA
+// =====================================================
+
+function iniciarMusica() {
+
+    prepararAudio();
+
+    musicaFondo.play()
+        .then(() => {
+            console.log("🎵 Música de fondo iniciada.");
+        })
+        .catch(error => {
+            console.log(
+                "No se pudo iniciar la música:",
+                error
+            );
+        });
+}
+
+
+// =====================================================
+// SONIDO RULETA
+// =====================================================
+
+function reproducirSonidoRuleta() {
+
+    prepararAudio();
+
+    sonidoRuleta.pause();
+    sonidoRuleta.currentTime = 0;
+
+    sonidoRuleta.play()
+        .then(() => {
+            console.log("🎡 Sonido de ruleta iniciado.");
+        })
+        .catch(error => {
+            console.log(
+                "No se pudo reproducir sonido de ruleta:",
+                error
+            );
+        });
+}
+
+
+// =====================================================
+// SONIDO GANADOR
+// =====================================================
+
+function reproducirSonidoGanador() {
+
+    prepararAudio();
+
+    sonidoGanador.pause();
+    sonidoGanador.currentTime = 0;
+
+    sonidoGanador.play()
+        .then(() => {
+            console.log("🏆 Sonido de ganador iniciado.");
+        })
+        .catch(error => {
+            console.log(
+                "No se pudo reproducir sonido de ganador:",
+                error
+            );
+        });
+}
+
+
+// =====================================================
 // ELEMENTOS
 // =====================================================
 
-const loginScreen = document.getElementById("loginScreen");
-const rouletteScreen = document.getElementById("rouletteScreen");
+const loginScreen =
+    document.getElementById("loginScreen");
 
-const nameInput = document.getElementById("participantName");
-const accessKeyInput = document.getElementById("accessKey");
-const enterButton = document.getElementById("enterButton");
-const loginMessage = document.getElementById("loginMessage");
+const rouletteScreen =
+    document.getElementById("rouletteScreen");
 
-const wheel = document.getElementById("wheel");
-const winnerBox = document.getElementById("winnerBox");
-const myName = document.getElementById("myName");
+const nameInput =
+    document.getElementById("participantName");
+
+const accessKeyInput =
+    document.getElementById("accessKey");
+
+const enterButton =
+    document.getElementById("enterButton");
+
+const loginMessage =
+    document.getElementById("loginMessage");
+
+const wheel =
+    document.getElementById("wheel");
+
+const winnerBox =
+    document.getElementById("winnerBox");
+
+const myName =
+    document.getElementById("myName");
 
 const publicParticipantCount =
-document.getElementById("publicParticipantCount");
+    document.getElementById("publicParticipantCount");
 
 const publicParticipantsList =
-document.getElementById("publicParticipantsList");
+    document.getElementById("publicParticipantsList");
+
 
 // =====================================================
 // ENTRAR
@@ -31,79 +144,98 @@ document.getElementById("publicParticipantsList");
 
 enterButton.addEventListener("click", async () => {
 
-const name = nameInput.value.trim();
+    const name =
+        nameInput.value.trim();
 
-const accessKey =
-    accessKeyInput.value.trim().toUpperCase();
+    const accessKey =
+        accessKeyInput.value.trim().toUpperCase();
 
-if (!name || !accessKey) {
 
-    loginMessage.textContent =
-        "Completa tu nombre y la clave.";
-
-    return;
-}
-
-enterButton.disabled = true;
-
-loginMessage.textContent =
-    "Comprobando acceso...";
-
-try {
-
-    const response =
-        await fetch("/api/participant/login", {
-
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-                name: name,
-                accessKey: accessKey
-            })
-        });
-
-    const data = await response.json();
-
-    if (!data.ok) {
+    if (!name || !accessKey) {
 
         loginMessage.textContent =
-            data.message || "No se pudo ingresar.";
-
-        enterButton.disabled = false;
+            "Completa tu nombre y la clave.";
 
         return;
     }
 
-    localStorage.setItem(
-        "participantToken",
-        data.token
-    );
 
-    localStorage.setItem(
-        "participantName",
-        data.name
-    );
+    // IMPORTANTE:
+    // El clic del usuario permite iniciar el audio.
 
-    entrarALaRuleta(
-        data.token,
-        data.name
-    );
-
-} catch (error) {
-
-    console.error(error);
+    enterButton.disabled = true;
 
     loginMessage.textContent =
-        "No se pudo conectar con el servidor.";
+        "Comprobando acceso...";
 
-    enterButton.disabled = false;
-}
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/participant/login",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        name: name,
+                        accessKey: accessKey
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.ok) {
+
+            loginMessage.textContent =
+                data.message ||
+                "No se pudo ingresar.";
+
+            enterButton.disabled = false;
+
+            return;
+        }
+
+
+        localStorage.setItem(
+            "participantToken",
+            data.token
+        );
+
+
+        localStorage.setItem(
+            "participantName",
+            data.name
+        );
+
+
+        entrarALaRuleta(
+            data.token,
+            data.name
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        loginMessage.textContent =
+            "No se pudo conectar con el servidor.";
+
+        enterButton.disabled = false;
+    }
 
 });
+
 
 // =====================================================
 // ENTRAR A LA RULETA
@@ -111,24 +243,25 @@ try {
 
 function entrarALaRuleta(token, name) {
 
+    loginScreen.classList.add("hidden");
 
-loginScreen.classList.add("hidden");
-
-rouletteScreen.classList.remove("hidden");
-
-myName.textContent =
-    `👤 ${name}`;
-
-socket = io({
-    auth: {
-        token: token
-    }
-});
-
-configurarSocket();
+    rouletteScreen.classList.remove("hidden");
 
 
+    myName.textContent =
+        `👤 ${name}`;
+
+
+    socket = io({
+        auth: {
+            token: token
+        }
+    });
+
+
+    configurarSocket();
 }
+
 
 // =====================================================
 // SOCKET
@@ -136,112 +269,168 @@ configurarSocket();
 
 function configurarSocket() {
 
-socket.on("connect", () => {
 
-    console.log("Conectado al servidor.");
+    socket.on("connect", () => {
 
-    socket.emit("authenticate");
-
-});
-
-
-socket.on("authenticated", (data) => {
-
-    console.log("Participante autenticado.");
-
-    if (data && data.name) {
-
-        myName.textContent =
-            `👤 ${data.name}`;
-
-    }
-
-});
-
-
-socket.on("authError", () => {
-
-    localStorage.removeItem(
-        "participantToken"
-    );
-
-    localStorage.removeItem(
-        "participantName"
-    );
-
-    location.reload();
-
-});
-
-
-// =================================================
-// ACTUALIZACIÓN DEL ESTADO
-// =================================================
-
-socket.on("stateUpdate", (state) => {
-
-    currentParticipants =
-        state.participants || [];
-
-    currentRotation =
-        state.rotation || 0;
-
-    crearRuleta();
-
-    renderPublicParticipants();
-
-    wheel.style.transform =
-        `rotate(${currentRotation}deg)`;
-
-
-    if (state.winner) {
-
-        mostrarGanador(
-            state.winner.name
+        console.log(
+            "Conectado al servidor."
         );
 
-    } else {
+        socket.emit("authenticate");
 
-        winnerBox.innerHTML =
-            "<span>ESPERANDO RESULTADO</span>";
-
-    }
-
-});
+    });
 
 
-// =================================================
-// GIRO
-// =================================================
+    // =================================================
+    // AUTENTICADO
+    // =================================================
 
-socket.on("wheelSpin", (data) => {
+    socket.on(
+        "authenticated",
+        (data) => {
 
-    wheel.style.transition =
-        `transform ${data.duration}ms cubic-bezier(0.12, 0.8, 0.18, 1)`;
-
-    wheel.style.transform =
-        `rotate(${data.rotation}deg)`;
-
-    winnerBox.innerHTML =
-        "<span>🎡 LA RULETA ESTÁ GIRANDO...</span>";
-
-});
+            console.log(
+                "Participante autenticado."
+            );
 
 
-// =================================================
-// RESULTADO
-// =================================================
+            if (data && data.name) {
 
-socket.on("wheelResult", (winner) => {
+                myName.textContent =
+                    `👤 ${data.name}`;
 
-    mostrarGanador(
-        winner.name
+            }
+
+        }
     );
 
+
+    // =================================================
+    // ERROR AUTENTICACIÓN
+    // =================================================
+
+    socket.on("authError", () => {
+
+    console.log("⚠️ Sesión no válida.");
+
+    localStorage.removeItem("participantToken");
+    localStorage.removeItem("participantName");
+
+    if (musicaFondo) {
+        musicaFondo.pause();
+    }
+
+    loginScreen.classList.remove("hidden");
+    rouletteScreen.classList.add("hidden");
+
+    loginMessage.textContent =
+        "Tu sesión expiró. Ingresa nuevamente.";
+
 });
 
+    // =================================================
+    // ACTUALIZACIÓN DEL ESTADO
+    // =================================================
+
+    socket.on(
+        "stateUpdate",
+        (state) => {
+
+            currentParticipants =
+                state.participants || [];
+
+
+            currentRotation =
+                state.rotation || 0;
+
+
+            crearRuleta();
+
+            renderPublicParticipants();
+
+
+            wheel.style.transform =
+                `rotate(${currentRotation}deg)`;
+
+
+            if (state.winner) {
+
+                mostrarGanador(
+                    state.winner.name
+                );
+
+            } else {
+
+                winnerBox.innerHTML =
+                    "<span>ESPERANDO RESULTADO</span>";
+
+            }
+
+        }
+    );
+
+
+    // =================================================
+    // GIRO
+    // =================================================
+
+    socket.on(
+        "wheelSpin",
+        (data) => {
+
+            console.log(
+                "🎡 La ruleta está girando."
+            );
+
+
+            // SONIDO DE RULETA
+
+            reproducirSonidoRuleta();
+
+
+            wheel.style.transition =
+                `transform ${data.duration}ms cubic-bezier(0.12, 0.8, 0.18, 1)`;
+
+
+            wheel.style.transform =
+                `rotate(${data.rotation}deg)`;
+
+
+            winnerBox.innerHTML =
+                "<span>🎡 LA RULETA ESTÁ GIRANDO...</span>";
+
+        }
+    );
+
+
+    // =================================================
+    // RESULTADO
+    // =================================================
+
+    socket.on(
+        "wheelResult",
+        (winner) => {
+
+            console.log(
+                "🏆 Ganador:",
+                winner.name
+            );
+
+
+            mostrarGanador(
+                winner.name
+            );
+
+
+            // SONIDO DEL GANADOR
+
+            reproducirSonidoGanador();
+
+        }
+    );
 
 }
+
 
 // =====================================================
 // CREAR RULETA
@@ -249,212 +438,174 @@ socket.on("wheelResult", (winner) => {
 
 function crearRuleta() {
 
-wheel.innerHTML = "";
-
-if (currentParticipants.length === 0) {
-
-    wheel.style.background = "#333";
-
-    return;
-}
-
-const total =
-    currentParticipants.length;
-
-const angle =
-    360 / total;
+    wheel.innerHTML = "";
 
 
-// Crear fondo de la ruleta
+    if (currentParticipants.length === 0) {
 
-let gradient =
-    "conic-gradient(";
+        wheel.style.background =
+            "#333";
 
-currentParticipants.forEach(
-    (participant, index) => {
+        return;
+    }
 
-        const start =
-            index * angle;
 
-        const end =
-            (index + 1) * angle;
+    const total =
+        currentParticipants.length;
 
-        gradient +=
-            `${participant.color} ${start}deg ${end}deg`;
 
-        if (
-            index <
-            currentParticipants.length - 1
-        ) {
+    const angle =
+        360 / total;
 
-            gradient += ", ";
+
+    let gradient =
+        "conic-gradient(";
+
+
+    currentParticipants.forEach(
+        (participant, index) => {
+
+            const start =
+                index * angle;
+
+
+            const end =
+                (index + 1) * angle;
+
+
+            gradient +=
+                `${participant.color} ${start}deg ${end}deg`;
+
+
+            if (
+                index <
+                currentParticipants.length - 1
+            ) {
+
+                gradient += ", ";
+
+            }
 
         }
-
-    }
-);
-
-gradient += ")";
-
-wheel.style.background =
-    gradient;
-
-
-// Radio de los nombres
-
-const radius =
-    Math.max(
-        50,
-        wheel.offsetWidth * 0.34
     );
 
 
-// Crear nombres
-
-currentParticipants.forEach(
-    (participant, index) => {
-
-        const label =
-            document.createElement("div");
-
-        label.className =
-            "wheel-label";
-
-        label.textContent =
-            participant.name;
-
-        const centerAngle =
-            index * angle +
-            angle / 2;
-
-        label.style.transform =
-            `rotate(${centerAngle}deg)
-             translateY(-${radius}px)
-             rotate(-${centerAngle}deg)`;
-
-        wheel.appendChild(label);
-
-    }
-);
+    gradient += ")";
 
 
+    wheel.style.background =
+        gradient;
 }
+
 
 // =====================================================
 // CAMBIO DE TAMAÑO
 // =====================================================
 
 window.addEventListener(
-"resize",
-() => {
+    "resize",
+    () => {
 
-    crearRuleta();
-
-    wheel.style.transform =
-        `rotate(${currentRotation}deg)`;
-
-}
+        crearRuleta();
 
 
-);
-
-// =====================================================
-// LISTA PÚBLICA DE PARTICIPANTES
-// =====================================================
-
-function renderPublicParticipants() {
-
-if (
-    !publicParticipantCount ||
-    !publicParticipantsList
-) {
-
-    return;
-}
-
-
-// Número de participantes
-
-publicParticipantCount.textContent =
-    currentParticipants.length;
-
-
-// Limpiar lista
-
-publicParticipantsList.innerHTML = "";
-
-
-// Sin participantes
-
-if (currentParticipants.length === 0) {
-
-    publicParticipantsList.innerHTML =
-        `<div class="empty">
-            Esperando participantes...
-        </div>`;
-
-    return;
-}
-
-
-// Crear participantes
-
-currentParticipants.forEach(
-    (participant, index) => {
-
-        const row =
-            document.createElement("div");
-
-        row.className =
-            "public-participant-row";
-
-
-        // Número
-
-        const number =
-            document.createElement("span");
-
-        number.className =
-            "public-participant-number";
-
-        number.textContent =
-            index + 1;
-
-
-        // Color
-
-        const color =
-            document.createElement("span");
-
-        color.className =
-            "public-participant-color";
-
-        color.style.background =
-            participant.color;
-
-
-        // Nombre
-
-        const name =
-            document.createElement("span");
-
-        name.className =
-            "public-participant-name";
-
-        name.textContent =
-            participant.name;
-
-
-        row.appendChild(number);
-        row.appendChild(color);
-        row.appendChild(name);
-
-        publicParticipantsList.appendChild(row);
+        wheel.style.transform =
+            `rotate(${currentRotation}deg)`;
 
     }
 );
 
+
+// =====================================================
+// LISTA PÚBLICA
+// =====================================================
+
+function renderPublicParticipants() {
+
+    if (
+        !publicParticipantCount ||
+        !publicParticipantsList
+    ) {
+
+        return;
+    }
+
+
+    publicParticipantCount.textContent =
+        currentParticipants.length;
+
+
+    publicParticipantsList.innerHTML =
+        "";
+
+
+    if (currentParticipants.length === 0) {
+
+        publicParticipantsList.innerHTML =
+            `<div class="empty">
+                Esperando participantes...
+            </div>`;
+
+        return;
+    }
+
+
+    currentParticipants.forEach(
+        (participant, index) => {
+
+            const row =
+                document.createElement("div");
+
+            row.className =
+                "public-participant-row";
+
+
+            const number =
+                document.createElement("span");
+
+            number.className =
+                "public-participant-number";
+
+            number.textContent =
+                index + 1;
+
+
+            const color =
+                document.createElement("span");
+
+            color.className =
+                "public-participant-color";
+
+            color.style.background =
+                participant.color;
+
+
+            const name =
+                document.createElement("span");
+
+            name.className =
+                "public-participant-name";
+
+            name.textContent =
+                participant.name;
+
+
+            row.appendChild(number);
+
+            row.appendChild(color);
+
+            row.appendChild(name);
+
+
+            publicParticipantsList.appendChild(
+                row
+            );
+
+        }
+    );
+
 }
+
 
 // =====================================================
 // MOSTRAR GANADOR
@@ -462,13 +613,12 @@ currentParticipants.forEach(
 
 function mostrarGanador(name) {
 
-
-winnerBox.innerHTML =
-    `<span>🏆 GANADOR</span>
-     <strong>${escapeHTML(name)}</strong>`;
-
+    winnerBox.innerHTML =
+        `<span>🏆 GANADOR</span>
+         <strong>${escapeHTML(name)}</strong>`;
 
 }
+
 
 // =====================================================
 // SEGURIDAD
@@ -476,93 +626,179 @@ winnerBox.innerHTML =
 
 function escapeHTML(text) {
 
-return String(text)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 
 }
+
 
 // =====================================================
 // RECUPERAR SESIÓN
 // =====================================================
 
+// =====================================================
+// RECUPERAR SESIÓN AUTOMÁTICAMENTE
+// =====================================================
+
 const savedToken =
-localStorage.getItem(
-"participantToken"
-);
+    localStorage.getItem("participantToken");
 
 const savedName =
-localStorage.getItem(
-"participantName"
-);
+    localStorage.getItem("participantName");
 
-if (
-savedToken &&
-savedName
-) {
+if (savedToken && savedName) {
 
+    console.log("🔐 Recuperando sesión...");
 
-entrarALaRuleta(
-    savedToken,
-    savedName
-);
-
-
+    entrarALaRuleta(
+        savedToken,
+        savedName
+    );
 }
+
+    // Si ya existe una sesión guardada,
+    // intentamos iniciar la música.
+
+
+
+// =====================================================
+// ACTUALIZAR
+// =====================================================
+
+// =====================================================
+// ACTUALIZAR
+// =====================================================
 
 // =====================================================
 // ACTUALIZAR
 // =====================================================
 
 const refreshButton =
-document.getElementById("refreshButton");
+    document.getElementById("refreshButton");
+
+const refreshStatus =
+    document.getElementById("refreshStatus");
 
 if (refreshButton) {
 
-refreshButton.addEventListener(
-    "click",
-    () => {
+    refreshButton.addEventListener("click", () => {
 
-        location.reload();
+        console.log("🔄 ACTUALIZANDO...");
 
-    }
-);
+        // Mostrar visualmente que se está actualizando
+        refreshButton.disabled = true;
+
+        if (refreshStatus) {
+            refreshStatus.textContent = "Actualizando...";
+        }
+
+        if (socket && socket.connected) {
+
+            socket.emit("requestState");
+
+            // Esperar un momento para que llegue stateUpdate
+            setTimeout(() => {
+
+                refreshButton.disabled = false;
+
+                if (refreshStatus) {
+                    refreshStatus.textContent = "✓ Actualizado";
+
+                    setTimeout(() => {
+                        refreshStatus.textContent = "";
+                    }, 2000);
+                }
+
+            }, 500);
+
+        } else {
+
+            console.log("⚠️ Socket desconectado.");
+
+            refreshButton.disabled = false;
+
+            if (refreshStatus) {
+                refreshStatus.textContent =
+                    "⚠️ Sin conexión";
+            }
+
+        }
+
+    });
+
+
 
 }
+
 
 // =====================================================
 // SALIR
 // =====================================================
 
 const logoutButton =
-document.getElementById("logoutButton");
+    document.getElementById(
+        "logoutButton"
+    );
+
 
 if (logoutButton) {
 
-logoutButton.addEventListener(
-    "click",
-    () => {
+    logoutButton.addEventListener(
+        "click",
+        () => {
 
-        localStorage.removeItem(
-            "participantToken"
-        );
+            localStorage.removeItem(
+                "participantToken"
+            );
 
-        localStorage.removeItem(
-            "participantName"
-        );
 
-        if (socket) {
+            localStorage.removeItem(
+                "participantName"
+            );
 
-            socket.disconnect();
+
+            if (musicaFondo) {
+
+                musicaFondo.pause();
+
+                musicaFondo.currentTime = 0;
+
+            }
+
+
+            if (sonidoRuleta) {
+
+                sonidoRuleta.pause();
+
+                sonidoRuleta.currentTime = 0;
+
+            }
+
+
+            if (sonidoGanador) {
+
+                sonidoGanador.pause();
+
+                sonidoGanador.currentTime = 0;
+
+            }
+
+
+            if (socket) {
+
+                socket.disconnect();
+
+            }
+
+
+            location.href =
+                "/participante.html";
 
         }
+    );
 
-        location.href =
-            "/participante.html";
-
-    }
-);
 }

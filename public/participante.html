@@ -1,151 +1,186 @@
 <!DOCTYPE html>
-
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Participante - Ruleta</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-```
-<!-- LOGIN -->
-<div id="loginScreen" class="screen">
+    <!-- =========================
+         LOGIN
+    ========================== -->
 
-    <div class="login-card">
+    <div id="loginScreen" class="screen">
 
-        <div class="logo">🎡</div>
+        <div class="login-card">
 
-        <h1>ENTRAR A LA RULETA</h1>
+            <div class="logo">🎡</div>
 
-        <p>
-            Ingresa tu nombre y la clave proporcionada por el administrador.
-        </p>
+            <h1>ENTRAR A LA RULETA</h1>
 
-        <input
-            id="participantName"
-            type="text"
-            maxlength="30"
-            placeholder="Tu nombre"
-        >
+            <p>
+                Ingresa tu nombre y la clave proporcionada por el administrador.
+            </p>
 
-        <input
-            id="accessKey"
-            type="text"
-            placeholder="Clave de acceso"
-        >
+            <input
+                id="participantName"
+                type="text"
+                maxlength="30"
+                placeholder="Tu nombre"
+            >
 
-        <button
-            id="enterButton"
-            class="main-button participant-button"
-        >
-            ENTRAR
-        </button>
+            <input
+                id="accessKey"
+                type="text"
+                placeholder="Clave de acceso"
+            >
 
-        <div id="loginMessage" class="message"></div>
+            <button
+                id="enterButton"
+                class="main-button participant-button"
+                type="button"
+            >
+                ENTRAR
+            </button>
+
+            <div
+                id="loginMessage"
+                class="message">
+            </div>
+
+        </div>
 
     </div>
 
-</div>
 
+    <!-- =========================
+         RULETA
+    ========================== -->
 
-<!-- RULETA -->
-<div id="rouletteScreen" class="roulette-screen hidden">
+    <div
+        id="rouletteScreen"
+        class="roulette-screen hidden">
 
-    <!-- CABECERA -->
-    <header class="topbar">
+        <!-- CABECERA -->
 
-        <div class="live-title">
-            🎡 <strong>RULETA EN VIVO</strong>
-        </div>
+        <header class="topbar">
 
-        <div class="topbar-right">
+            <div class="live-title">
+                🎡 <strong>RULETA EN VIVO</strong>
+            </div>
 
-            <div id="myName" class="my-name"></div>
+            <div class="topbar-right">
 
-            <button
-                id="refreshButton"
-                class="header-button"
-                title="Actualizar"
-            >
-                🔄
-            </button>
+                <div
+                    id="myName"
+                    class="my-name">
+                </div>
 
-            <button
-                id="logoutButton"
-                class="header-button logout-button"
-                title="Salir"
-            >
-                🚪
-            </button>
+<button
+    id="refreshButton"
+    class="header-button"
+    type="button"
+    title="Actualizar participantes">
+    🔄
+</button>
 
-        </div>
+<span id="refreshStatus"></span>
 
-    </header>
-
-
-    <!-- CONTENIDO -->
-    <main class="roulette-page">
-
-        <div class="roulette-content">
-
-            <!-- RULETA -->
-            <div class="wheel-container">
-
-                <div class="pointer"></div>
-
-                <div id="wheel" class="wheel"></div>
+                <button
+                    id="logoutButton"
+                    class="header-button logout-button"
+                    type="button"
+                    title="Salir">
+                    🚪
+                </button>
 
             </div>
 
-
-            <!-- RESULTADO -->
-            <div id="winnerBox" class="winner-box">
-
-                <span>ESPERANDO RESULTADO</span>
-
-            </div>
+        </header>
 
 
-            <!-- ÚNICA LISTA DE PARTICIPANTES -->
-            <div class="participant-view-list">
+        <!-- CONTENIDO -->
 
-                <div class="participant-view-title">
+        <main class="roulette-page">
 
-                    <h2>👥 PARTICIPANTES</h2>
+            <div class="roulette-content">
 
-                    <span id="publicParticipantCount">
-                        0
+                <!-- RULETA -->
+
+                <div class="wheel-container">
+
+                    <div class="pointer"></div>
+
+                    <div
+                        id="wheel"
+                        class="wheel">
+                    </div>
+
+                </div>
+
+
+                <!-- RESULTADO -->
+
+                <div
+                    id="winnerBox"
+                    class="winner-box">
+
+                    <span>
+                        ESPERANDO RESULTADO
                     </span>
 
                 </div>
 
-                <div
-                    id="publicParticipantsList"
-                    class="public-participants-list"
-                >
 
-                    <div class="empty">
-                        Esperando participantes...
+                <!-- PARTICIPANTES -->
+
+                <div class="participant-view-list">
+
+                    <div class="participant-view-title">
+
+                        <h2>
+                            👥 PARTICIPANTES
+                        </h2>
+
+                        <span id="publicParticipantCount">
+                            0
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="publicParticipantsList"
+                        class="public-participants-list">
+
+                        <div class="empty">
+                            Esperando participantes...
+                        </div>
+
                     </div>
 
                 </div>
 
             </div>
 
-        </div>
+        </main>
 
-    </main>
-
-</div>
+    </div>
 
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="participante.js"></script>
-```
+    <!-- SOCKET.IO -->
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- JAVASCRIPT DEL PARTICIPANTE -->
+
+    <script src="/participante.js"></script>
 
 </body>
 

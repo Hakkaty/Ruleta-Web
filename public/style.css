@@ -1903,3 +1903,123 @@ p {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* =====================================================
+   VENTANA DEL GANADOR
+===================================================== */
+
+#winnerModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 9999;
+
+    opacity: 0;
+    visibility: hidden;
+
+    transition:
+        opacity 0.3s ease,
+        visibility 0.3s ease;
+}
+
+#winnerModal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.winner-modal-content {
+    width: min(90%, 500px);
+
+    padding: 40px 25px;
+
+    text-align: center;
+
+    background: white;
+
+    border-radius: 25px;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.45);
+
+    transform: scale(0.7);
+
+    transition:
+        transform 0.35s ease;
+}
+
+#winnerModal.show
+.winner-modal-content {
+    transform: scale(1);
+}
+
+.winner-trophy {
+    font-size: 70px;
+
+    animation:
+        winnerBounce 0.8s ease;
+}
+
+.winner-small {
+    margin-top: 10px;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    letter-spacing: 2px;
+}
+
+.winner-modal-content h1 {
+    margin: 10px 0;
+
+    font-size: 38px;
+}
+
+.winner-modal-name {
+    margin: 20px 0;
+
+    font-size: 32px;
+
+    font-weight: 800;
+}
+
+.winner-modal-content p {
+    font-size: 18px;
+
+    margin-bottom: 25px;
+}
+
+.winner-close-button {
+    border: none;
+
+    padding: 13px 28px;
+
+    border-radius: 12px;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    font-weight: bold;
+}
+
+@keyframes winnerBounce {
+
+    0% {
+        transform: scale(0.4);
+    }
+
+    60% {
+        transform: scale(1.25);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+
+}
