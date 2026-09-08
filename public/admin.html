@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrador - Ruleta</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- LOGIN ADMIN -->
+    <div id="adminLogin" class="screen">
+
+        <div class="login-card">
+
+            <div class="logo">👑</div>
+
+            <h1>ADMINISTRADOR</h1>
+
+            <p>Acceso privado</p>
+
+            <input
+                id="adminPassword"
+                type="password"
+                placeholder="Clave de administrador"
+            >
+
+            <button
+                id="adminLoginButton"
+                class="main-button admin-button"
+            >
+                INGRESAR
+            </button>
+
+            <div id="adminLoginMessage" class="message"></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- PANEL ADMIN -->
+    <div id="adminPanel" class="admin-panel hidden">
+
+        <!-- CABECERA -->
+        <header class="admin-header">
+
+            <div class="admin-title">
+                👑 <strong>PANEL DE ADMINISTRADOR</strong>
+            </div>
+
+            <div class="server-key">
+
+                <span>CLAVE DE ACCESO</span>
+
+                <strong id="serverKey">----</strong>
+
+            </div>
+
+            <div class="header-buttons">
+
+                <button
+                    id="refreshButton"
+                    class="header-button"
+                >
+                    🔄 ACTUALIZAR
+                </button>
+
+                <button
+                    id="logoutButton"
+                    class="header-button logout-button"
+                >
+                    🚪 SALIR
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- CONTENIDO ADMIN -->
+        <main class="admin-container">
+
+
+            <!-- AGREGAR -->
+            <section class="admin-card">
+
+                <h2>➕ Registrar participante</h2>
+
+                <div class="add-form">
+
+                    <input
+                        id="newName"
+                        type="text"
+                        maxlength="30"
+                        placeholder="Nombre"
+                    >
+
+                    <input
+                        id="newColor"
+                        type="color"
+                        value="#1e88e5"
+                    >
+
+                    <button
+                        id="addParticipant"
+                        class="main-button admin-button"
+                    >
+                        AGREGAR
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <div id="adminMessage" class="message"></div>
+
+
+            <!-- PARTICIPANTES -->
+            <section class="admin-card">
+
+                <div class="participants-title">
+
+                    <h2>👥 Participantes</h2>
+
+                    <span id="participantCount">0</span>
+
+                </div>
+
+                <div
+                    id="participantsList"
+                    class="participants-list"
+                ></div>
+
+            </section>
+
+
+            <!-- RULETA -->
+            <section class="admin-card roulette-admin">
+
+                <h2>🎡 Ruleta</h2>
+
+<div class="admin-wheel-area">
+
+    <div class="wheel-container">
+
+        <div class="pointer"></div>
+
+        <div id="adminWheel" class="wheel"></div>
+
+    </div>
+
+</div>
+
+                <button
+                    id="spinButton"
+                    class="spin-button"
+                >
+                    🎡 GIRAR RULETA
+                </button>
+
+                <div
+                    id="adminWinner"
+                    class="winner-box"
+                >
+                    ESPERANDO
+                </div>
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="admin.js"></script>
+
+</body>
+</html>
+
