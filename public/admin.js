@@ -53,6 +53,8 @@ const spinButton =
 
 const adminWinner =
     document.getElementById("adminWinner");
+const countdown =
+document.getElementById("countdown");
 
 
 // =====================================================
@@ -543,6 +545,18 @@ window.addEventListener("resize", () => {
 // GIRAR
 // =====================================================
 
+// =====================================================
+// GIRAR CON CUENTA REGRESIVA
+// =====================================================
+
+// =====================================================
+// GIRAR CON CUENTA REGRESIVA
+// =====================================================
+
+// =====================================================
+// GIRAR RULETA
+// =====================================================
+
 spinButton.addEventListener(
     "click",
     () => {
@@ -551,15 +565,33 @@ spinButton.addEventListener(
             return;
         }
 
+        if (spinButton.disabled) {
+            return;
+        }
+
         spinButton.disabled = true;
 
         socket.emit(
-            "adminSpin"
+            "adminStartCountdown"
         );
 
     }
-);
+); 
 
+function mostrarNumeroCuenta(numero) {
+
+    countdown.classList.remove("hidden");
+
+    countdown.textContent = numero;
+
+    countdown.style.animation = "none";
+
+    void countdown.offsetWidth;
+
+    countdown.style.animation =
+        "countdownPulse 0.8s ease";
+
+}
 
 // =====================================================
 // GANADOR

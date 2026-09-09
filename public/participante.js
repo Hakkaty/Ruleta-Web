@@ -148,7 +148,11 @@ const publicParticipantCount =
 const publicParticipantsList =
     document.getElementById("publicParticipantsList");
 
+const countdownOverlay =
+    document.getElementById("countdownOverlay");
 
+const countdownNumber =
+    document.getElementById("countdownNumber");
 // =====================================================
 // ENTRAR
 // =====================================================
@@ -395,7 +399,53 @@ function configurarSocket() {
         }
     );
 
+// =================================================
+// CUENTA REGRESIVA
+// =================================================
 
+// =================================================
+// CUENTA REGRESIVA
+// =================================================
+
+socket.on("wheelCountdown", (data) => {
+
+    if (!countdownOverlay || !countdownNumber) {
+        return;
+    }
+
+    countdownOverlay.classList.remove("hidden");
+
+    countdownNumber.textContent =
+        data.number;
+
+    countdownNumber.classList.remove(
+        "countdown-animate"
+    );
+
+    // Reiniciar animación
+    void countdownNumber.offsetWidth;
+
+    countdownNumber.classList.add(
+        "countdown-animate"
+    );
+
+    console.log(
+        "⏱️ CUENTA:",
+        data.number
+    );
+
+    // START desaparece antes de comenzar el giro
+    if (data.number === "START!") {
+
+        setTimeout(() => {
+
+            countdownOverlay.classList.add("hidden");
+
+        }, 700);
+
+    }
+
+});
     // =================================================
     // GIRO
     // =================================================

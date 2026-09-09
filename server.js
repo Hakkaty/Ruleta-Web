@@ -539,85 +539,170 @@ socket.on("adminResetAccessKey", () => {
         broadcastState();
     });
 
-    // -------------------------------------------------
-    // ADMIN: GIRAR RULETA
-    // -------------------------------------------------
+  // -------------------------------------------------
+// ADMIN: INICIAR CUENTA REGRESIVA
+// -------------------------------------------------
 
-    socket.on("adminSpin", () => {
+socket.on("adminStartCountdown", () => {
 
-        const session = socket.data.session;
+    const session = socket.data.session;
 
-        if (!session || session.type !== "admin") {
-            return;
-        }
+    if (!session || session.type !== "admin") {
+        return;
+    }
 
-        if (roulette.spinning) {
-            return;
-        }
+    if (roulette.spinning) {
+        return;
+    }
 
-        if (participants.length < 2) {
+    if (participants.length < 2) {
 
-            socket.emit("adminError", {
-                message: "Necesitas al menos 2 participantes."
-            });
-
-            return;
-        }
-
-        // Elegir ganador en el servidor
-        const winnerIndex = Math.floor(
-            Math.random() * participants.length
-        );
-
-        const winner = participants[winnerIndex];
-
-        const segmentAngle = 360 / participants.length;
-
-        // Centro del segmento ganador
-        const targetAngle =
-            360 - (
-                winnerIndex * segmentAngle +
-                segmentAngle / 2
-            );
-
-        const currentRotation =
-            ((roulette.rotation % 360) + 360) % 360;
-
-        const difference =
-            ((targetAngle - currentRotation) + 360) % 360;
-
-        // Varias vueltas antes de detenerse
-        const extraSpins = 360 * 6;
-
-        roulette.rotation += extraSpins + difference;
-
-        roulette.spinning = true;
-        roulette.winner = null;
-
-        io.to("ruleta").emit("wheelSpin", {
-            rotation: roulette.rotation,
-            duration: 14500
+        socket.emit("adminError", {
+            message: "Necesitas al menos 2 participantes."
         });
 
-        setTimeout(() => {
+        return;
+    }
 
-            roulette.spinning = false;
 
-            roulette.winner = {
-                id: winner.id,
-                name: winner.name,
-                color: winner.color
-            };
-
-            broadcastState();
-
-            io.to("ruleta").emit(
-                "wheelResult",
-                roulette.winner
-            );
-
-        }, 14500);
+    // Avisar a TODOS que comienza la cuenta regresiva
+    io.to("ruleta").emit("wheelCountdown", {
+        number: 3
     });
+
+
+    setTimeout(() => {
+
+        io.to("ruleta").emit("wheelCountdown", {
+            number: 2
+        });
+
+    }, 1000);
+
+
+    setTimeout(() => {
+
+        io.to("ruleta").emit("wheelCountdown", {
+            number: 1
+        });
+
+    }, 2000);
+
+
+    setTimeout(() => {
+
+        io.to("ruleta").emit("wheelCountdown", {
+            number: "START!"
+        });
+
+    }, 3000);
+
+
+    // Después de START comienza el giro
+    setTimeout(() => {
+
+        realizarGiro();
+
+    }, 3800);
+
+});
+
+
+// -------------------------------------------------
+// FUNCIÓN REALIZAR GIRO
+// -------------------------------------------------
+
+function realizarGiro() {
+
+    if (roulette.spinning) {
+        return;
+    }
+
+    if (participants.length < 2) {
+        return;
+    }
+
+
+    // Elegir ganador en el servidor
+    const winnerIndex =
+        Math.floor(
+            Math.random() *
+            participants.length
+        );
+
+
+    const winner =
+        participants[winnerIndex];
+
+
+    const segmentAngle =
+        360 / participants.length;
+
+
+    // Centro del segmento ganador
+    const targetAngle =
+        360 - (
+            winnerIndex * segmentAngle +
+            segmentAngle / 2
+        );
+
+
+    const currentRotation =
+        ((roulette.rotation % 360) + 360) % 360;
+
+
+    const difference =
+        ((targetAngle - currentRotation) + 360) % 360;
+
+
+    // Varias vueltas antes de detenerse
+    const extraSpins =
+        360 * 6;
+
+
+    roulette.rotation +=
+        extraSpins + difference;
+
+
+    roulette.spinning = true;
+
+    roulette.winner = null;
+
+
+    io.to("ruleta").emit(
+        "wheelSpin",
+        {
+            rotation: roulette.rotation,
+            duration: 14500
+        }
+    );
+
+
+    setTimeout(() => {
+
+        roulette.spinning = false;
+
+
+        roulette.winner = {
+            id: winner.id,
+            name: winner.name,
+            color: winner.color
+        };
+
+
+        broadcastState();
+
+
+        io.to("ruleta").emit(
+            "wheelResult",
+            roulette.winner
+        );
+
+
+    }, 14500);
+
+}
+  
 
     // -------------------------------------------------
     // DESCONEXIÓN
