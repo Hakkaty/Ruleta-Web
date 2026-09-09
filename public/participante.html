@@ -127,16 +127,31 @@
 
                 <!-- RESULTADO -->
 
-                <div
-                    id="winnerBox"
-                    class="winner-box">
+<!-- VENTANA FLOTANTE DEL GANADOR -->
 
-                    <span>
-                        ESPERANDO RESULTADO
-                    </span>
+<div id="winnerOverlay" class="celebration-overlay">
 
-                </div>
+    <div class="celebration-popup">
 
+        <div class="celebration-trophy">
+            🏆
+        </div>
+
+        <div class="celebration-title">
+            🎉 ¡TENEMOS GANADOR! 🎉
+        </div>
+
+        <div id="winnerName" class="celebration-name">
+            —
+        </div>
+
+        <div class="celebration-subtitle">
+            ¡FELICIDADES! 🎊
+        </div>
+
+    </div>
+
+</div>
 
                 <!-- PARTICIPANTES -->
 
@@ -176,11 +191,16 @@
 
     <!-- SOCKET.IO -->
 
-    <script src="/socket.io/socket.io.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 
-    <!-- JAVASCRIPT DEL PARTICIPANTE -->
+<audio
+    id="musicaFondo"
+    src="/audio/fondo.mp3"
+    loop
+    preload="auto">
+</audio>
 
-    <script src="/participante.js"></script>
+<script src="/participante.js"></script>
 
 </body>
 

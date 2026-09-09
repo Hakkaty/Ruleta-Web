@@ -7,6 +7,10 @@ let currentRotation = 0;
 // AUDIO
 // =====================================================
 
+// =====================================================
+// AUDIO
+// =====================================================
+
 let musicaFondo = null;
 let sonidoRuleta = null;
 let sonidoGanador = null;
@@ -14,9 +18,12 @@ let sonidoGanador = null;
 function prepararAudio() {
 
     if (!musicaFondo) {
-        musicaFondo = new Audio("/audio/fondo.mp3");
-        musicaFondo.loop = true;
-        musicaFondo.volume = 0.20;
+        musicaFondo = document.getElementById("musicaFondo");
+
+        if (musicaFondo) {
+            musicaFondo.loop = true;
+            musicaFondo.volume = 0.20;
+        }
     }
 
     if (!sonidoRuleta) {
@@ -39,13 +46,18 @@ function iniciarMusica() {
 
     prepararAudio();
 
+    if (!musicaFondo) {
+        console.log("❌ No se encontró musicaFondo");
+        return;
+    }
+
     musicaFondo.play()
         .then(() => {
             console.log("🎵 Música de fondo iniciada.");
         })
         .catch(error => {
             console.log(
-                "No se pudo iniciar la música:",
+                "❌ No se pudo iniciar la música:",
                 error
             );
         });
@@ -61,15 +73,19 @@ function reproducirSonidoRuleta() {
     prepararAudio();
 
     sonidoRuleta.pause();
-    sonidoRuleta.currentTime = 0;
 
+if (musicaFondo) {
+    musicaFondo.pause();
+}
+    sonidoRuleta.currentTime = 0;
     sonidoRuleta.play()
+
         .then(() => {
             console.log("🎡 Sonido de ruleta iniciado.");
         })
         .catch(error => {
             console.log(
-                "No se pudo reproducir sonido de ruleta:",
+                "❌ No se pudo reproducir sonido de ruleta:",
                 error
             );
         });
@@ -93,13 +109,11 @@ function reproducirSonidoGanador() {
         })
         .catch(error => {
             console.log(
-                "No se pudo reproducir sonido de ganador:",
+                "❌ No se pudo reproducir sonido de ganador:",
                 error
             );
         });
 }
-
-
 // =====================================================
 // ELEMENTOS
 // =====================================================
@@ -125,9 +139,6 @@ const loginMessage =
 const wheel =
     document.getElementById("wheel");
 
-const winnerBox =
-    document.getElementById("winnerBox");
-
 const myName =
     document.getElementById("myName");
 
@@ -144,6 +155,19 @@ const publicParticipantsList =
 
 enterButton.addEventListener("click", async () => {
 
+    prepararAudio();
+
+if (musicaFondo) {
+    musicaFondo.currentTime = 0;
+
+    musicaFondo.play()
+        .then(() => {
+            console.log("🎵 MÚSICA DE FONDO ACTIVADA");
+        })
+        .catch((error) => {
+            console.error("❌ ERROR DE AUDIO:", error);
+        });
+}
     const name =
         nameInput.value.trim();
 
@@ -359,13 +383,15 @@ function configurarSocket() {
                     state.winner.name
                 );
 
-            } else {
+} else {
 
-                winnerBox.innerHTML =
-                    "<span>ESPERANDO RESULTADO</span>";
+    const winnerOverlay = document.getElementById("winnerOverlay");
 
-            }
+    if (winnerOverlay) {
+        winnerOverlay.classList.remove("show");
+    }
 
+}
         }
     );
 
@@ -394,11 +420,6 @@ function configurarSocket() {
 
             wheel.style.transform =
                 `rotate(${data.rotation}deg)`;
-
-
-            winnerBox.innerHTML =
-                "<span>🎡 LA RULETA ESTÁ GIRANDO...</span>";
-
         }
     );
 
@@ -611,14 +632,30 @@ function renderPublicParticipants() {
 // MOSTRAR GANADOR
 // =====================================================
 
-function mostrarGanador(name) {
+function mostrarGanador(nombre) {
+    
+    const winnerOverlay = document.getElementById("winnerOverlay");
+    const winnerName = document.getElementById("winnerName");
 
-    winnerBox.innerHTML =
-        `<span>🏆 GANADOR</span>
-         <strong>${escapeHTML(name)}</strong>`;
+    if (!winnerOverlay || !winnerName) {
+        console.error("❌ No se encontró la ventana del ganador.");
+        return;
+    }
 
-}
+    winnerName.textContent = nombre;
 
+    winnerOverlay.classList.add("show");
+
+    console.log("🎉 VENTANA DEL GANADOR MOSTRADA:", nombre);
+
+setTimeout(() => {
+    winnerOverlay.classList.remove("show");
+
+    if (musicaFondo) {
+        musicaFondo.play().catch(() => {});
+    }
+}, 6000);}
+    
 
 // =====================================================
 // SEGURIDAD
@@ -659,19 +696,6 @@ if (savedToken && savedName) {
         savedName
     );
 }
-
-    // Si ya existe una sesión guardada,
-    // intentamos iniciar la música.
-
-
-
-// =====================================================
-// ACTUALIZAR
-// =====================================================
-
-// =====================================================
-// ACTUALIZAR
-// =====================================================
 
 // =====================================================
 // ACTUALIZAR

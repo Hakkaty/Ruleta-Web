@@ -596,7 +596,7 @@ socket.on("adminResetAccessKey", () => {
 
         io.to("ruleta").emit("wheelSpin", {
             rotation: roulette.rotation,
-            duration: 6000
+            duration: 14500
         });
 
         setTimeout(() => {
@@ -616,7 +616,7 @@ socket.on("adminResetAccessKey", () => {
                 roulette.winner
             );
 
-        }, 6000);
+        }, 14500);
     });
 
     // -------------------------------------------------
