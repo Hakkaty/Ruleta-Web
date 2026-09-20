@@ -14,7 +14,7 @@ const PORT = process.env.PORT  || 3000;
 // CONFIGURACIÓN
 // =====================================================
 
-const ADMIN_PASSWORD = "ADMIN2026";
+const ADMIN_PASSWORD = "0705865103Ch_";
 
 const COLORS = [
     "#e53935",
