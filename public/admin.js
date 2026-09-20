@@ -557,6 +557,10 @@ window.addEventListener("resize", () => {
 // GIRAR RULETA
 // =====================================================
 
+// =====================================================
+// GIRAR RULETA
+// =====================================================
+
 spinButton.addEventListener(
     "click",
     () => {
@@ -569,6 +573,34 @@ spinButton.addEventListener(
             return;
         }
 
+        // ---------------------------------------------
+        // OBJETIVO OPCIONAL PARA LA DEMOSTRACIÓN
+        // ---------------------------------------------
+
+        const target = prompt(
+            "MODO DEMOSTRACIÓN\n\n" +
+            "Escribe el número de casilla que quieres que salga.\n" +
+            "Ejemplo: 7\n\n" +
+            "Si dejas vacío o cancelas, la ruleta será aleatoria."
+        );
+
+        // ---------------------------------------------
+        // ENVIAR OBJETIVO AL SERVIDOR
+        // ---------------------------------------------
+
+        socket.emit(
+            "adminSetTarget",
+            {
+                target: target === null
+                    ? ""
+                    : target.trim()
+            }
+        );
+
+        // ---------------------------------------------
+        // INICIAR GIRO
+        // ---------------------------------------------
+
         spinButton.disabled = true;
 
         socket.emit(
@@ -576,7 +608,7 @@ spinButton.addEventListener(
         );
 
     }
-); 
+);
 
 function mostrarNumeroCuenta(numero) {
 

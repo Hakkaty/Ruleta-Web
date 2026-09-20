@@ -60,15 +60,16 @@ let SERVER_ACCESS_KEY = generarClaveServidor();
 // =====================================================
 // DATOS DE LA RULETA
 // =====================================================
-
 let participants = [];
-
 let roulette = {
     spinning: false,
     winner: null,
-    rotation: 0
-};
+    rotation: 0,
 
+    // Objetivo opcional para la demostración.
+    // Puede ser número de casilla, nombre o ID.
+    forcedTarget: null
+};
 // =====================================================
 // SESIONES
 // =====================================================
@@ -372,20 +373,90 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("requestState", () => {
+        socket.on("requestState", () => {
 
-    const session = socket.data.session;
+        const session = socket.data.session;
 
-    if (!session) {
-        return;
-    }
+        if (!session) {
+            return;
+        }
 
-    socket.emit(
-        "stateUpdate",
-        getPublicState()
-    );
+        socket.emit(
+            "stateUpdate",
+            getPublicState()
+        );
 
-});
+    });
+
+
+    // -------------------------------------------------
+    // ADMIN: ESTABLECER CASILLA OBJETIVO
+    // -------------------------------------------------
+
+    socket.on("adminSetTarget", (data) => {
+
+        const session = socket.data.session;
+
+        if (!session || session.type !== "admin") {
+            return;
+        }
+
+        if (roulette.spinning) {
+
+            socket.emit("adminError", {
+                message: "No puedes cambiar el objetivo mientras gira la ruleta."
+            });
+
+            return;
+        }
+
+        const target =
+            String(data?.target ?? "").trim();
+
+        if (!target) {
+
+            roulette.forcedTarget = null;
+
+            socket.emit("adminMessage", {
+                message: "Objetivo eliminado. La próxima tirada será aleatoria."
+            });
+
+            return;
+        }
+
+        roulette.forcedTarget = target;
+
+        socket.emit("adminMessage", {
+            message: `Objetivo registrado: ${target}`
+        });
+
+    });
+
+
+    // -------------------------------------------------
+    // ADMIN: ELIMINAR CASILLA OBJETIVO
+    // -------------------------------------------------
+
+    socket.on("adminClearTarget", () => {
+
+        const session = socket.data.session;
+
+        if (!session || session.type !== "admin") {
+            return;
+        }
+
+        if (roulette.spinning) {
+            return;
+        }
+
+        roulette.forcedTarget = null;
+
+        socket.emit("adminMessage", {
+            message:
+                "Objetivo eliminado. La ruleta funcionará de manera aleatoria."
+        });
+
+    });
 
     // -------------------------------------------------
     // ADMIN: AGREGAR PARTICIPANTE
@@ -623,16 +694,89 @@ function realizarGiro() {
     }
 
 
-    // Elegir ganador en el servidor
-    const winnerIndex =
+   // =====================================================
+// DETERMINAR GANADOR
+// =====================================================
+
+let winnerIndex = -1;
+
+// ---------------------------------------------
+// COMPROBAR SI EXISTE UN OBJETIVO REGISTRADO
+// ---------------------------------------------
+
+if (roulette.forcedTarget !== null) {
+
+    const target = String(
+        roulette.forcedTarget
+    ).trim();
+
+    // -----------------------------------------
+    // 1. Si el objetivo es un número de casilla
+    //    Ejemplo: "7" = séptima casilla
+    // -----------------------------------------
+
+    if (/^\d+$/.test(target)) {
+
+        const targetNumber =
+            Number(target);
+
+        const index =
+            targetNumber - 1;
+
+        if (
+            targetNumber >= 1 &&
+            targetNumber <= participants.length
+        ) {
+
+            winnerIndex = index;
+        }
+    }
+
+    // -----------------------------------------
+    // 2. Si no fue un número válido,
+    //    buscar por nombre o ID
+    // -----------------------------------------
+
+    if (winnerIndex === -1) {
+
+        const index =
+            participants.findIndex(p =>
+                p.id === target ||
+                p.name.toLowerCase() ===
+                target.toLowerCase()
+            );
+
+        if (index !== -1) {
+            winnerIndex = index;
+        }
+    }
+}
+
+// ---------------------------------------------
+// SI NO EXISTE EL OBJETIVO → ALEATORIO NORMAL
+// ---------------------------------------------
+
+if (winnerIndex === -1) {
+
+    winnerIndex =
         Math.floor(
             Math.random() *
             participants.length
         );
+}
 
+// ---------------------------------------------
+// OBTENER GANADOR
+// ---------------------------------------------
 
-    const winner =
-        participants[winnerIndex];
+const winner =
+    participants[winnerIndex];
+
+// ---------------------------------------------
+// EL OBJETIVO SE USA UNA SOLA VEZ
+// ---------------------------------------------
+
+roulette.forcedTarget = null;
 
 
     const segmentAngle =
