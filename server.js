@@ -63,11 +63,9 @@ let SERVER_ACCESS_KEY = generarClaveServidor();
 let participants = [];
 let roulette = {
     spinning: false,
+    countdown: false,
     winner: null,
     rotation: 0,
-
-    // Objetivo opcional para la demostración.
-    // Puede ser número de casilla, nombre o ID.
     forcedTarget: null
 };
 // =====================================================
@@ -320,12 +318,6 @@ function broadcastState() {
         getPublicState()
     );
 }
- app.get("/api/server-info", (req, res) => {
-    res.json({
-        ok: true,
-        accessKey: SERVER_ACCESS_KEY
-    });
-});
 // =====================================================
 // SOCKET.IO
 // =====================================================
@@ -457,11 +449,6 @@ io.on("connection", (socket) => {
         });
 
     });
-
-    // -------------------------------------------------
-    // ADMIN: AGREGAR PARTICIPANTE
-    // -------------------------------------------------
-
     // -------------------------------------------------
 // ADMIN: RESETEAR CLAVE DE ACCESO
 // -------------------------------------------------
@@ -613,7 +600,6 @@ socket.on("adminResetAccessKey", () => {
   // -------------------------------------------------
 // ADMIN: INICIAR CUENTA REGRESIVA
 // -------------------------------------------------
-
 socket.on("adminStartCountdown", () => {
 
     const session = socket.data.session;
@@ -622,7 +608,7 @@ socket.on("adminStartCountdown", () => {
         return;
     }
 
-    if (roulette.spinning) {
+    if (roulette.spinning || roulette.countdown) {
         return;
     }
 
@@ -635,14 +621,16 @@ socket.on("adminStartCountdown", () => {
         return;
     }
 
+    roulette.countdown = true;
+    roulette.winner = null;
 
-    // Avisar a TODOS que comienza la cuenta regresiva
     io.to("ruleta").emit("wheelCountdown", {
         number: 3
     });
 
-
     setTimeout(() => {
+
+        if (!roulette.countdown) return;
 
         io.to("ruleta").emit("wheelCountdown", {
             number: 2
@@ -650,8 +638,9 @@ socket.on("adminStartCountdown", () => {
 
     }, 1000);
 
-
     setTimeout(() => {
+
+        if (!roulette.countdown) return;
 
         io.to("ruleta").emit("wheelCountdown", {
             number: 1
@@ -659,8 +648,9 @@ socket.on("adminStartCountdown", () => {
 
     }, 2000);
 
-
     setTimeout(() => {
+
+        if (!roulette.countdown) return;
 
         io.to("ruleta").emit("wheelCountdown", {
             number: "START!"
@@ -668,186 +658,147 @@ socket.on("adminStartCountdown", () => {
 
     }, 3000);
 
-
-    // Después de START comienza el giro
-    setTimeout(() => {
-
-        realizarGiro();
-
-    }, 3800);
+setTimeout(() => { if (!roulette.countdown) return; roulette.countdown = false; // Todos los dispositivos reciben la orden ahora // y comienzan exactamente 1 segundo después. const startAt = Date.now() + 1000; realizarGiro(startAt); }, 3000);
 
 });
-
 
 // -------------------------------------------------
 // FUNCIÓN REALIZAR GIRO
 // -------------------------------------------------
+function realizarGiro(startAt = Date.now()) {
 
-function realizarGiro() {
-
+    // Evitar giros simultáneos
     if (roulette.spinning) {
         return;
     }
 
+    if (roulette.countdown) {
+        return;
+    }
+
+    // Necesitamos al menos 2 participantes
     if (participants.length < 2) {
         return;
     }
 
+    // =====================================================
+    // DETERMINAR GANADOR
+    // =====================================================
 
-   // =====================================================
-// DETERMINAR GANADOR
-// =====================================================
+    let winnerIndex = -1;
 
-let winnerIndex = -1;
+    if (roulette.forcedTarget) {
 
-// ---------------------------------------------
-// COMPROBAR SI EXISTE UN OBJETIVO REGISTRADO
-// ---------------------------------------------
+        // Primero buscar por ID
+        winnerIndex = participants.findIndex(
+            p => String(p.id) === String(roulette.forcedTarget)
+        );
 
-if (roulette.forcedTarget !== null) {
+        // Si no existe, buscar por nombre
+        if (winnerIndex === -1) {
+            winnerIndex = participants.findIndex(
+                p => p.name === roulette.forcedTarget
+            );
+        }
 
-    const target = String(
-        roulette.forcedTarget
-    ).trim();
-
-    // -----------------------------------------
-    // 1. Si el objetivo es un número de casilla
-    //    Ejemplo: "7" = séptima casilla
-    // -----------------------------------------
-
-    if (/^\d+$/.test(target)) {
-
-        const targetNumber =
-            Number(target);
-
-        const index =
-            targetNumber - 1;
-
+        // Si es un número, tratarlo como posición 1, 2, 3...
         if (
-            targetNumber >= 1 &&
-            targetNumber <= participants.length
+            winnerIndex === -1 &&
+            !isNaN(roulette.forcedTarget)
         ) {
 
-            winnerIndex = index;
-        }
-    }
-
-    // -----------------------------------------
-    // 2. Si no fue un número válido,
-    //    buscar por nombre o ID
-    // -----------------------------------------
-
-    if (winnerIndex === -1) {
-
-        const index =
-            participants.findIndex(p =>
-                p.id === target ||
-                p.name.toLowerCase() ===
-                target.toLowerCase()
+            const number = Number(
+                roulette.forcedTarget
             );
 
-        if (index !== -1) {
-            winnerIndex = index;
+            if (
+                number >= 1 &&
+                number <= participants.length
+            ) {
+                winnerIndex = number - 1;
+            }
         }
     }
-}
 
-// ---------------------------------------------
-// SI NO EXISTE EL OBJETIVO → ALEATORIO NORMAL
-// ---------------------------------------------
-
-if (winnerIndex === -1) {
-
-    winnerIndex =
-        Math.floor(
-            Math.random() *
-            participants.length
+    // Si no hay resultado controlado, elegir aleatoriamente
+    if (winnerIndex === -1) {
+        winnerIndex = Math.floor(
+            Math.random() * participants.length
         );
-}
+    }
 
-// ---------------------------------------------
-// OBTENER GANADOR
-// ---------------------------------------------
+    const winner = participants[winnerIndex];
 
-const winner =
-    participants[winnerIndex];
-
-// ---------------------------------------------
-// EL OBJETIVO SE USA UNA SOLA VEZ
-// ---------------------------------------------
-
-roulette.forcedTarget = null;
-
+    // =====================================================
+    // CONVERTIR LA POSICIÓN EN ÁNGULO
+    // =====================================================
 
     const segmentAngle =
         360 / participants.length;
 
-
-    // Centro del segmento ganador
-    const targetAngle =
-        360 - (
-            winnerIndex * segmentAngle +
-            segmentAngle / 2
-        );
-
-
-    const currentRotation =
+    // El puntero está arriba (270 grados)
+const targetAngle = 360 - ( winnerIndex * segmentAngle + segmentAngle / 2 );
+    // Normalizar rotación actual
+    const currentNormalized =
         ((roulette.rotation % 360) + 360) % 360;
 
+    let targetNormalized =
+        ((targetAngle % 360) + 360) % 360;
 
-    const difference =
-        ((targetAngle - currentRotation) + 360) % 360;
+    let difference =
+        targetNormalized -
+        currentNormalized;
 
+    if (difference < 0) {
+        difference += 360;
+    }
 
-    // Varias vueltas antes de detenerse
-    const extraSpins =
-        360 * 6;
+    // Varias vueltas completas para que se vea el giro
+    const extraSpins = 360 * 6;
 
+    roulette.rotation =
+        roulette.rotation +
+        extraSpins +
+        difference;
 
-    roulette.rotation +=
-        extraSpins + difference;
-
+    // =====================================================
+    // PREPARAR ESTADO
+    // =====================================================
 
     roulette.spinning = true;
-
     roulette.winner = null;
 
+    // El objetivo solo se utiliza una vez
+    roulette.forcedTarget = null;
 
-    io.to("ruleta").emit(
-        "wheelSpin",
-        {
-            rotation: roulette.rotation,
-            duration: 14500
-        }
-    );
+const duration = 14500;
 
+io.to("ruleta").emit("wheelSpin", {
+    rotation: roulette.rotation,
+    duration,
+    startAt
+});
 
-    setTimeout(() => {
+// Esperamos hasta que realmente termine la animación,
+// contando también el tiempo que falta hasta startAt.
+const finishDelay =
+    Math.max(0, startAt - Date.now()) + duration;
 
-        roulette.spinning = false;
+setTimeout(() => {
 
+    roulette.spinning = false;
+    roulette.winner = winner;
 
-        roulette.winner = {
-            id: winner.id,
-            name: winner.name,
-            color: winner.color
-        };
+    // Primero dejamos la ruleta exactamente en su posición final.
+    broadcastState();
 
+    // Después mostramos el ganador.
+    io.to("ruleta").emit("wheelResult", {
+        winner: roulette.winner
+    });
 
-        broadcastState();
-
-
-        io.to("ruleta").emit(
-            "wheelResult",
-            roulette.winner
-        );
-
-
-    }, 14500);
-
+}, finishDelay);
 }
-  
-
     // -------------------------------------------------
     // DESCONEXIÓN
     // -------------------------------------------------
@@ -859,6 +810,7 @@ roulette.forcedTarget = null;
             socket.id
         );
     });
+
 });
 
 // =====================================================

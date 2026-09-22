@@ -7,10 +7,6 @@ let currentRotation = 0;
 // AUDIO
 // =====================================================
 
-// =====================================================
-// AUDIO
-// =====================================================
-
 let musicaFondo = null;
 let sonidoRuleta = null;
 let sonidoGanador = null;
@@ -18,23 +14,37 @@ let sonidoGanador = null;
 function prepararAudio() {
 
     if (!musicaFondo) {
-        musicaFondo = document.getElementById("musicaFondo");
+
+        musicaFondo =
+            document.getElementById("musicaFondo");
 
         if (musicaFondo) {
+
             musicaFondo.loop = true;
             musicaFondo.volume = 0.20;
+
         }
+
     }
 
     if (!sonidoRuleta) {
-        sonidoRuleta = new Audio("/audio/ruleta.mp3");
+
+        sonidoRuleta =
+            new Audio("/audio/ruleta.mp3");
+
         sonidoRuleta.volume = 0.50;
+
     }
 
     if (!sonidoGanador) {
-        sonidoGanador = new Audio("/audio/ganador.mp3");
+
+        sonidoGanador =
+            new Audio("/audio/ganador.mp3");
+
         sonidoGanador.volume = 0.80;
+
     }
+
 }
 
 
@@ -47,20 +57,32 @@ function iniciarMusica() {
     prepararAudio();
 
     if (!musicaFondo) {
-        console.log("❌ No se encontró musicaFondo");
+
+        console.log(
+            "❌ No se encontró musicaFondo"
+        );
+
         return;
+
     }
 
     musicaFondo.play()
         .then(() => {
-            console.log("🎵 Música de fondo iniciada.");
+
+            console.log(
+                "🎵 Música de fondo iniciada."
+            );
+
         })
         .catch(error => {
+
             console.log(
                 "❌ No se pudo iniciar la música:",
                 error
             );
+
         });
+
 }
 
 
@@ -72,23 +94,35 @@ function reproducirSonidoRuleta() {
 
     prepararAudio();
 
+    if (!sonidoRuleta) {
+        return;
+    }
+
     sonidoRuleta.pause();
 
-if (musicaFondo) {
-    musicaFondo.pause();
-}
-    sonidoRuleta.currentTime = 0;
-    sonidoRuleta.play()
+    if (musicaFondo) {
+        musicaFondo.pause();
+    }
 
+    sonidoRuleta.currentTime = 0;
+
+    sonidoRuleta.play()
         .then(() => {
-            console.log("🎡 Sonido de ruleta iniciado.");
+
+            console.log(
+                "🎡 Sonido de ruleta iniciado."
+            );
+
         })
         .catch(error => {
+
             console.log(
                 "❌ No se pudo reproducir sonido de ruleta:",
                 error
             );
+
         });
+
 }
 
 
@@ -100,20 +134,33 @@ function reproducirSonidoGanador() {
 
     prepararAudio();
 
+    if (!sonidoGanador) {
+        return;
+    }
+
     sonidoGanador.pause();
     sonidoGanador.currentTime = 0;
 
     sonidoGanador.play()
         .then(() => {
-            console.log("🏆 Sonido de ganador iniciado.");
+
+            console.log(
+                "🏆 Sonido de ganador iniciado."
+            );
+
         })
         .catch(error => {
+
             console.log(
                 "❌ No se pudo reproducir sonido de ganador:",
                 error
             );
+
         });
+
 }
+
+
 // =====================================================
 // ELEMENTOS
 // =====================================================
@@ -153,6 +200,8 @@ const countdownOverlay =
 
 const countdownNumber =
     document.getElementById("countdownNumber");
+
+
 // =====================================================
 // ENTRAR
 // =====================================================
@@ -161,22 +210,36 @@ enterButton.addEventListener("click", async () => {
 
     prepararAudio();
 
-if (musicaFondo) {
-    musicaFondo.currentTime = 0;
+    if (musicaFondo) {
 
-    musicaFondo.play()
-        .then(() => {
-            console.log("🎵 MÚSICA DE FONDO ACTIVADA");
-        })
-        .catch((error) => {
-            console.error("❌ ERROR DE AUDIO:", error);
-        });
-}
+        musicaFondo.currentTime = 0;
+
+        musicaFondo.play()
+            .then(() => {
+
+                console.log(
+                    "🎵 MÚSICA DE FONDO ACTIVADA"
+                );
+
+            })
+            .catch(error => {
+
+                console.error(
+                    "❌ ERROR DE AUDIO:",
+                    error
+                );
+
+            });
+
+    }
+
     const name =
         nameInput.value.trim();
 
     const accessKey =
-        accessKeyInput.value.trim().toUpperCase();
+        accessKeyInput.value
+            .trim()
+            .toUpperCase();
 
 
     if (!name || !accessKey) {
@@ -185,11 +248,9 @@ if (musicaFondo) {
             "Completa tu nombre y la clave.";
 
         return;
+
     }
 
-
-    // IMPORTANTE:
-    // El clic del usuario permite iniciar el audio.
 
     enterButton.disabled = true;
 
@@ -231,6 +292,7 @@ if (musicaFondo) {
             enterButton.disabled = false;
 
             return;
+
         }
 
 
@@ -260,6 +322,7 @@ if (musicaFondo) {
             "No se pudo conectar con el servidor.";
 
         enterButton.disabled = false;
+
     }
 
 });
@@ -288,6 +351,7 @@ function entrarALaRuleta(token, name) {
 
 
     configurarSocket();
+
 }
 
 
@@ -297,6 +361,10 @@ function entrarALaRuleta(token, name) {
 
 function configurarSocket() {
 
+
+    // =================================================
+    // CONEXIÓN
+    // =================================================
 
     socket.on("connect", () => {
 
@@ -339,22 +407,39 @@ function configurarSocket() {
 
     socket.on("authError", () => {
 
-    console.log("⚠️ Sesión no válida.");
+        console.log(
+            "⚠️ Sesión no válida."
+        );
 
-    localStorage.removeItem("participantToken");
-    localStorage.removeItem("participantName");
 
-    if (musicaFondo) {
-        musicaFondo.pause();
-    }
+        localStorage.removeItem(
+            "participantToken"
+        );
 
-    loginScreen.classList.remove("hidden");
-    rouletteScreen.classList.add("hidden");
+        localStorage.removeItem(
+            "participantName"
+        );
 
-    loginMessage.textContent =
-        "Tu sesión expiró. Ingresa nuevamente.";
 
-});
+        if (musicaFondo) {
+            musicaFondo.pause();
+        }
+
+
+        loginScreen.classList.remove(
+            "hidden"
+        );
+
+        rouletteScreen.classList.add(
+            "hidden"
+        );
+
+
+        loginMessage.textContent =
+            "Tu sesión expiró. Ingresa nuevamente.";
+
+    });
+
 
     // =================================================
     // ACTUALIZACIÓN DEL ESTADO
@@ -363,6 +448,12 @@ function configurarSocket() {
     socket.on(
         "stateUpdate",
         (state) => {
+
+            console.log(
+                "📡 STATE RECIBIDO:",
+                state
+            );
+
 
             currentParticipants =
                 state.participants || [];
@@ -377,99 +468,152 @@ function configurarSocket() {
             renderPublicParticipants();
 
 
+            wheel.style.transition =
+                "none";
+
+
             wheel.style.transform =
                 `rotate(${currentRotation}deg)`;
 
-
-            if (state.winner) {
-
-                mostrarGanador(
-                    state.winner.name
-                );
-
-} else {
-
-    const winnerOverlay = document.getElementById("winnerOverlay");
-
-    if (winnerOverlay) {
-        winnerOverlay.classList.remove("show");
-    }
-
-}
         }
     );
 
-// =================================================
-// CUENTA REGRESIVA
-// =================================================
 
-// =================================================
-// CUENTA REGRESIVA
-// =================================================
-
-socket.on("wheelCountdown", (data) => {
-
-    if (!countdownOverlay || !countdownNumber) {
-        return;
-    }
-
-    countdownOverlay.classList.remove("hidden");
-
-    countdownNumber.textContent =
-        data.number;
-
-    countdownNumber.classList.remove(
-        "countdown-animate"
-    );
-
-    // Reiniciar animación
-    void countdownNumber.offsetWidth;
-
-    countdownNumber.classList.add(
-        "countdown-animate"
-    );
-
-    console.log(
-        "⏱️ CUENTA:",
-        data.number
-    );
-
-    // START desaparece antes de comenzar el giro
-    if (data.number === "START!") {
-
-        setTimeout(() => {
-
-            countdownOverlay.classList.add("hidden");
-
-        }, 700);
-
-    }
-
-});
     // =================================================
-    // GIRO
+    // CUENTA REGRESIVA
+    // =================================================
+
+    socket.on(
+        "wheelCountdown",
+        (data) => {
+
+            if (
+                !countdownOverlay ||
+                !countdownNumber
+            ) {
+
+                return;
+
+            }
+
+
+            countdownOverlay.classList.remove(
+                "hidden"
+            );
+
+
+            countdownNumber.textContent =
+                data.number;
+
+
+            countdownNumber.classList.remove(
+                "countdown-animate"
+            );
+
+
+            // Reiniciar animación
+            void countdownNumber.offsetWidth;
+
+
+            countdownNumber.classList.add(
+                "countdown-animate"
+            );
+
+
+            console.log(
+                "⏱️ CUENTA:",
+                data.number
+            );
+
+
+            // START desaparece antes del giro
+            if (data.number === "START!") {
+
+                setTimeout(() => {
+
+                    countdownOverlay.classList.add(
+                        "hidden"
+                    );
+
+                }, 700);
+
+            }
+
+        }
+    );
+
+
+    // =================================================
+    // GIRO SINCRONIZADO
     // =================================================
 
     socket.on(
         "wheelSpin",
         (data) => {
 
-            console.log(
-                "🎡 La ruleta está girando."
-            );
+            const targetRotation =
+                data.rotation;
+
+            const duration =
+                data.duration;
+
+            const startAt =
+                Number(data.startAt) ||
+                Date.now();
 
 
-            // SONIDO DE RULETA
+            // Cancelar cualquier giro pendiente
+            if (window.participantSpinTimer) {
 
-            reproducirSonidoRuleta();
+                clearTimeout(
+                    window.participantSpinTimer
+                );
+
+            }
 
 
+            // Mantener la ruleta en su posición
+            // actual antes de comenzar
             wheel.style.transition =
-                `transform ${data.duration}ms cubic-bezier(0.12, 0.8, 0.18, 1)`;
+                "none";
 
 
             wheel.style.transform =
-                `rotate(${data.rotation}deg)`;
+                `rotate(${currentRotation}deg)`;
+
+
+            // Forzar al navegador a aplicar
+            // la posición antes de animar
+            void wheel.offsetWidth;
+
+
+            const delay =
+                Math.max(
+                    0,
+                    startAt - Date.now()
+                );
+
+
+            window.participantSpinTimer =
+                setTimeout(() => {
+
+                    wheel.style.transition =
+                        `transform ${duration}ms cubic-bezier(0.05, 0.65, 0.1, 1)`;
+
+
+                    wheel.style.transform =
+                        `rotate(${targetRotation}deg)`;
+
+
+                    currentRotation =
+                        targetRotation;
+
+
+                    // Sonido al comenzar el giro
+                    reproducirSonidoRuleta();
+
+                }, delay);
+
         }
     );
 
@@ -480,7 +624,16 @@ socket.on("wheelCountdown", (data) => {
 
     socket.on(
         "wheelResult",
-        (winner) => {
+        (data) => {
+
+            const winner =
+                data?.winner;
+
+
+            if (!winner) {
+                return;
+            }
+
 
             console.log(
                 "🏆 Ganador:",
@@ -492,8 +645,6 @@ socket.on("wheelCountdown", (data) => {
                 winner.name
             );
 
-
-            // SONIDO DEL GANADOR
 
             reproducirSonidoGanador();
 
@@ -509,6 +660,11 @@ socket.on("wheelCountdown", (data) => {
 
 function crearRuleta() {
 
+    if (!wheel) {
+        return;
+    }
+
+
     wheel.innerHTML = "";
 
 
@@ -518,6 +674,7 @@ function crearRuleta() {
             "#333";
 
         return;
+
     }
 
 
@@ -566,6 +723,7 @@ function crearRuleta() {
 
     wheel.style.background =
         gradient;
+
 }
 
 
@@ -580,8 +738,12 @@ window.addEventListener(
         crearRuleta();
 
 
-        wheel.style.transform =
-            `rotate(${currentRotation}deg)`;
+        if (wheel) {
+
+            wheel.style.transform =
+                `rotate(${currentRotation}deg)`;
+
+        }
 
     }
 );
@@ -599,6 +761,7 @@ function renderPublicParticipants() {
     ) {
 
         return;
+
     }
 
 
@@ -618,6 +781,7 @@ function renderPublicParticipants() {
             </div>`;
 
         return;
+
     }
 
 
@@ -627,6 +791,7 @@ function renderPublicParticipants() {
             const row =
                 document.createElement("div");
 
+
             row.className =
                 "public-participant-row";
 
@@ -634,8 +799,10 @@ function renderPublicParticipants() {
             const number =
                 document.createElement("span");
 
+
             number.className =
                 "public-participant-number";
+
 
             number.textContent =
                 index + 1;
@@ -644,8 +811,10 @@ function renderPublicParticipants() {
             const color =
                 document.createElement("span");
 
+
             color.className =
                 "public-participant-color";
+
 
             color.style.background =
                 participant.color;
@@ -654,8 +823,10 @@ function renderPublicParticipants() {
             const name =
                 document.createElement("span");
 
+
             name.className =
                 "public-participant-name";
+
 
             name.textContent =
                 participant.name;
@@ -683,29 +854,67 @@ function renderPublicParticipants() {
 // =====================================================
 
 function mostrarGanador(nombre) {
-    
-    const winnerOverlay = document.getElementById("winnerOverlay");
-    const winnerName = document.getElementById("winnerName");
 
-    if (!winnerOverlay || !winnerName) {
-        console.error("❌ No se encontró la ventana del ganador.");
+    const winnerOverlay =
+        document.getElementById(
+            "winnerOverlay"
+        );
+
+
+    const winnerName =
+        document.getElementById(
+            "winnerName"
+        );
+
+
+    if (
+        !winnerOverlay ||
+        !winnerName
+    ) {
+
+        console.error(
+            "❌ No se encontró la ventana del ganador."
+        );
+
         return;
+
     }
 
-    winnerName.textContent = nombre;
 
-    winnerOverlay.classList.add("show");
+    winnerName.textContent =
+        nombre;
 
-    console.log("🎉 VENTANA DEL GANADOR MOSTRADA:", nombre);
 
-setTimeout(() => {
-    winnerOverlay.classList.remove("show");
+    winnerOverlay.classList.add(
+        "show"
+    );
 
-    if (musicaFondo) {
-        musicaFondo.play().catch(() => {});
-    }
-}, 13000);}
-    
+
+    console.log(
+        "🎉 VENTANA DEL GANADOR MOSTRADA:",
+        nombre
+    );
+
+
+    setTimeout(() => {
+
+        winnerOverlay.classList.remove(
+            "show"
+        );
+
+
+        if (musicaFondo) {
+
+            musicaFondo
+                .play()
+                .catch(() => {});
+
+        }
+
+    }, 13000);
+
+}
+
 
 // =====================================================
 // SEGURIDAD
@@ -724,87 +933,130 @@ function escapeHTML(text) {
 
 
 // =====================================================
-// RECUPERAR SESIÓN
-// =====================================================
-
-// =====================================================
 // RECUPERAR SESIÓN AUTOMÁTICAMENTE
 // =====================================================
 
 const savedToken =
-    localStorage.getItem("participantToken");
+    localStorage.getItem(
+        "participantToken"
+    );
+
 
 const savedName =
-    localStorage.getItem("participantName");
+    localStorage.getItem(
+        "participantName"
+    );
+
 
 if (savedToken && savedName) {
 
-    console.log("🔐 Recuperando sesión...");
+    console.log(
+        "🔐 Recuperando sesión..."
+    );
+
 
     entrarALaRuleta(
         savedToken,
         savedName
     );
+
 }
+
 
 // =====================================================
 // ACTUALIZAR
 // =====================================================
 
 const refreshButton =
-    document.getElementById("refreshButton");
+    document.getElementById(
+        "refreshButton"
+    );
+
 
 const refreshStatus =
-    document.getElementById("refreshStatus");
+    document.getElementById(
+        "refreshStatus"
+    );
+
 
 if (refreshButton) {
 
-    refreshButton.addEventListener("click", () => {
+    refreshButton.addEventListener(
+        "click",
+        () => {
 
-        console.log("🔄 ACTUALIZANDO...");
+            console.log(
+                "🔄 ACTUALIZANDO..."
+            );
 
-        // Mostrar visualmente que se está actualizando
-        refreshButton.disabled = true;
 
-        if (refreshStatus) {
-            refreshStatus.textContent = "Actualizando...";
-        }
+            refreshButton.disabled =
+                true;
 
-        if (socket && socket.connected) {
-
-            socket.emit("requestState");
-
-            // Esperar un momento para que llegue stateUpdate
-            setTimeout(() => {
-
-                refreshButton.disabled = false;
-
-                if (refreshStatus) {
-                    refreshStatus.textContent = "✓ Actualizado";
-
-                    setTimeout(() => {
-                        refreshStatus.textContent = "";
-                    }, 2000);
-                }
-
-            }, 500);
-
-        } else {
-
-            console.log("⚠️ Socket desconectado.");
-
-            refreshButton.disabled = false;
 
             if (refreshStatus) {
+
                 refreshStatus.textContent =
-                    "⚠️ Sin conexión";
+                    "Actualizando...";
+
+            }
+
+
+            if (
+                socket &&
+                socket.connected
+            ) {
+
+                socket.emit(
+                    "requestState"
+                );
+
+
+                setTimeout(() => {
+
+                    refreshButton.disabled =
+                        false;
+
+
+                    if (refreshStatus) {
+
+                        refreshStatus.textContent =
+                            "✓ Actualizado";
+
+
+                        setTimeout(() => {
+
+                            refreshStatus.textContent =
+                                "";
+
+                        }, 2000);
+
+                    }
+
+                }, 500);
+
+            } else {
+
+                console.log(
+                    "⚠️ Socket desconectado."
+                );
+
+
+                refreshButton.disabled =
+                    false;
+
+
+                if (refreshStatus) {
+
+                    refreshStatus.textContent =
+                        "⚠️ Sin conexión";
+
+                }
+
             }
 
         }
-
-    });
-
-
+    );
 
 }
 
@@ -839,7 +1091,8 @@ if (logoutButton) {
 
                 musicaFondo.pause();
 
-                musicaFondo.currentTime = 0;
+                musicaFondo.currentTime =
+                    0;
 
             }
 
@@ -848,7 +1101,8 @@ if (logoutButton) {
 
                 sonidoRuleta.pause();
 
-                sonidoRuleta.currentTime = 0;
+                sonidoRuleta.currentTime =
+                    0;
 
             }
 
@@ -857,7 +1111,8 @@ if (logoutButton) {
 
                 sonidoGanador.pause();
 
-                sonidoGanador.currentTime = 0;
+                sonidoGanador.currentTime =
+                    0;
 
             }
 

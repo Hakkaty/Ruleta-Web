@@ -46,9 +46,17 @@
         <!-- CABECERA -->
         <header class="admin-header">
 
-            <div class="admin-title">
-                👑 <strong>PANEL DE ADMINISTRADOR</strong>
-            </div>
+           <div class="admin-title"> 
+    👑 <strong>PANEL DE ADMINISTRADOR</strong>
+
+    <button
+        id="controlResultButton"
+        class="header-button control-result-button"
+        type="button"
+    >
+        🎛️ CONTROLAR RESULTADO
+    </button>
+</div>
 
             <div class="server-key">
 
@@ -174,13 +182,73 @@
                     ESPERANDO
                 </div>
 
-            </section>
+         </section>
 
+</main> 
+    <!-- VENTANA CONTROLAR RESULTADO -->
+<!-- VENTANA CONTROLAR RESULTADO - MODO DEMOSTRACIÓN -->
 
-        </main>
+<div
+    id="controlResultPanel"
+    class="control-result-overlay hidden"
+>
+    <div class="control-result-window">
+
+        <button
+            id="closeControlResult"
+            class="control-result-close"
+            type="button"
+        >
+            ✕
+        </button>
+
+        <h3>🎛️ CONTROLAR RESULTADO</h3>
+
+        <div class="demo-badge">
+            MODO DEMOSTRACIÓN
+        </div>
+
+        <p class="control-result-description">
+            Selecciona un participante para realizar una
+            simulación visual del resultado.
+        </p>
+
+        <div class="control-result-info">
+            <span>👥 Participantes</span>
+            <strong id="controlParticipantCount">0</strong>
+        </div>
+
+        <label
+            for="demoParticipant"
+            class="control-result-label"
+        >
+            Seleccionar participante
+        </label>
+
+        <select
+            id="demoParticipant"
+            class="control-result-select"
+        >
+            <option value="">
+                Selecciona un participante
+            </option>
+        </select>
+
+        <button
+            id="demoResultButton"
+            class="demo-result-button"
+            type="button"
+        >
+            🎯 SIMULAR RESULTADO
+        </button>
+
+        <div
+            id="demoResultMessage"
+            class="demo-result-message"
+        ></div>
 
     </div>
-
+</div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="admin.js"></script>

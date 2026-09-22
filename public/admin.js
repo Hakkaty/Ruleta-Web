@@ -4,7 +4,6 @@ let participants = [];
 
 let currentRotation = 0;
 
-
 // =====================================================
 // ELEMENTOS
 // =====================================================
@@ -53,12 +52,156 @@ const spinButton =
 
 const adminWinner =
     document.getElementById("adminWinner");
+
 const countdown =
-document.getElementById("countdown");
+    document.getElementById("countdown");
+
+const controlResultButton =
+    document.getElementById("controlResultButton");
+
+const controlResultPanel =
+    document.getElementById("controlResultPanel");
+
+const closeControlResult =
+    document.getElementById("closeControlResult");
+
+const controlParticipantCount =
+    document.getElementById("controlParticipantCount");
+
+const demoParticipant =
+    document.getElementById("demoParticipant");
+
+const demoResultButton =
+    document.getElementById("demoResultButton");
+
+const demoResultMessage =
+    document.getElementById("demoResultMessage");
 
 
 // =====================================================
-// LOGIN ADMIN
+// CONTROLAR RESULTADO
+// =====================================================
+
+if (controlResultButton) {
+
+    controlResultButton.addEventListener(
+        "click",
+        () => {
+
+            actualizarParticipantesDemo();
+
+            if (controlResultPanel) {
+
+                controlResultPanel.classList.remove(
+                    "hidden"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+if (closeControlResult) {
+
+    closeControlResult.addEventListener(
+        "click",
+        () => {
+
+            if (controlResultPanel) {
+
+                controlResultPanel.classList.add(
+                    "hidden"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+// =====================================================
+// PREPARAR RESULTADO
+// =====================================================
+
+if (demoResultButton) {
+
+    demoResultButton.addEventListener(
+        "click",
+        () => {
+
+            const selectedValue =
+                demoParticipant.value;
+
+
+            if (selectedValue === "") {
+
+                demoResultMessage.textContent =
+                    "⚠️ Por favor selecciona un participante.";
+
+                demoResultMessage.style.color =
+                    "red";
+
+                return;
+
+            }
+
+
+            if (!socket) {
+
+                demoResultMessage.textContent =
+                    "❌ No hay conexión con el servidor.";
+
+                demoResultMessage.style.color =
+                    "red";
+
+                return;
+
+            }
+
+
+            socket.emit(
+                "adminSetTarget",
+                {
+                    target: selectedValue
+                }
+            );
+
+
+            demoResultMessage.textContent =
+                "🎯 Resultado preparado con éxito.";
+
+            demoResultMessage.style.color =
+                "#4caf50";
+
+
+            setTimeout(
+                () => {
+
+                    if (controlResultPanel) {
+
+                        controlResultPanel.classList.add(
+                            "hidden"
+                        );
+
+                    }
+
+                },
+                1500
+            );
+
+        }
+    );
+
+}
+
+
+// =====================================================
+// LOGIN ADMINISTRADOR
 // =====================================================
 
 adminLoginButton.addEventListener(
@@ -68,61 +211,79 @@ adminLoginButton.addEventListener(
         const password =
             adminPassword.value;
 
+
         if (!password) {
 
             adminLoginMessage.textContent =
                 "Ingresa la clave.";
 
             return;
+
         }
 
-        adminLoginButton.disabled = true;
+
+        adminLoginButton.disabled =
+            true;
+
 
         try {
 
             const response =
-                await fetch("/api/admin/login", {
+                await fetch(
+                    "/api/admin/login",
+                    {
+                        method: "POST",
 
-                    method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
 
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
+                        body: JSON.stringify({
+                            password
+                        })
+                    }
+                );
 
-                    body: JSON.stringify({
-                        password
-                    })
-                });
 
             const data =
                 await response.json();
+
 
             if (!data.ok) {
 
                 adminLoginMessage.textContent =
                     data.message;
 
-                adminLoginButton.disabled = false;
+                adminLoginButton.disabled =
+                    false;
 
                 return;
+
             }
+
 
             localStorage.setItem(
                 "adminToken",
                 data.token
             );
 
+
             entrarAlPanel(
                 data.token
             );
 
+
         } catch (error) {
+
+            console.error(error);
 
             adminLoginMessage.textContent =
                 "Error al conectar.";
 
-            adminLoginButton.disabled = false;
+            adminLoginButton.disabled =
+                false;
+
         }
 
     }
@@ -135,11 +296,18 @@ adminLoginButton.addEventListener(
 
 function entrarAlPanel(token) {
 
-    adminLogin.classList.add("hidden");
+    adminLogin.classList.add(
+        "hidden"
+    );
 
-    adminPanel.classList.remove("hidden");
+
+    adminPanel.classList.remove(
+        "hidden"
+    );
+
 
     conectarSocket(token);
+
 }
 
 
@@ -157,111 +325,294 @@ function conectarSocket(token) {
         });
 
 
-    socket.on("connect", () => {
+    // =================================================
+    // CONECTADO
+    // =================================================
 
-        socket.emit("authenticate");
+    socket.on(
+        "connect",
+        () => {
 
-    });
-
-
-    socket.on("authenticated", (data) => {
-
-        console.log(
-            "Administrador autenticado"
-        );
-
-    });
+            console.log(
+                "Conectado al servidor."
+            );
 
 
-    socket.on("serverKey", (data) => {
-
-        serverKey.textContent =
-            data.key;
-
-    });
-
-
-    socket.on("authError", () => {
-
-        localStorage.removeItem(
-            "adminToken"
-        );
-
-        location.reload();
-
-    });
-
-
-    socket.on("stateUpdate", (state) => {
-
-        participants =
-            state.participants || [];
-
-        currentRotation =
-            state.rotation || 0;
-
-        renderParticipants();
-
-        crearAdminRuleta();
-
-        adminWheel.style.transform =
-            `rotate(${currentRotation}deg)`;
-
-
-        if (state.winner) {
-
-            mostrarAdminWinner(
-                state.winner.name
+            socket.emit(
+                "authenticate"
             );
 
         }
-
-    });
-
-
-    socket.on("wheelSpin", (data) => {
-
-        spinButton.disabled = true;
-
-        adminWheel.style.transition =
-            `transform ${data.duration}ms cubic-bezier(0.12, 0.8, 0.18, 1)`;
-
-        adminWheel.style.transform =
-            `rotate(${data.rotation}deg)`;
-
-        adminWinner.innerHTML =
-            "🎡 GIRANDO...";
-
-    });
-
-
-    socket.on("wheelResult", (winner) => {
-
-        spinButton.disabled = false;
-
-        mostrarAdminWinner(
-            winner.name
-        );
-
-    });
-
-
-    socket.on("adminError", (data) => {
-
-        mostrarMensaje(
-            data.message
-        );
-
-        spinButton.disabled = false;
-
-    });
-    socket.on("adminMessage", (data) => {
-
-    mostrarMensaje(
-        data.message
     );
 
-});
+
+    // =================================================
+    // AUTENTICADO
+    // =================================================
+
+    socket.on(
+        "authenticated",
+        () => {
+
+            console.log(
+                "Administrador autenticado."
+            );
+
+        }
+    );
+
+
+    // =================================================
+    // CLAVE DEL SERVIDOR
+    // =================================================
+
+    socket.on(
+        "serverKey",
+        (data) => {
+
+            serverKey.textContent =
+                data.key;
+
+        }
+    );
+
+
+    // =================================================
+    // ERROR AUTENTICACIÓN
+    // =================================================
+
+    socket.on(
+        "authError",
+        (data) => {
+
+            localStorage.removeItem(
+                "adminToken"
+            );
+
+
+            alert(
+                data?.message ||
+                "La sesión ya no es válida."
+            );
+
+
+            location.reload();
+
+        }
+    );
+
+
+    // =================================================
+    // ESTADO GENERAL
+    // =================================================
+
+    socket.on(
+        "stateUpdate",
+        (state) => {
+
+            participants =
+                state.participants || [];
+
+
+            currentRotation =
+                state.rotation || 0;
+
+
+            actualizarParticipantesDemo();
+
+            renderParticipants();
+
+            crearAdminRuleta();
+
+
+            adminWheel.style.transition =
+                "none";
+
+
+            adminWheel.style.transform =
+                `rotate(${currentRotation}deg)`;
+
+        }
+    );
+
+
+    // =================================================
+    // CUENTA REGRESIVA
+    // =================================================
+
+    socket.on(
+        "wheelCountdown",
+        (data) => {
+
+            if (!countdown) {
+                return;
+            }
+
+
+            mostrarNumeroCuenta(
+                data.number
+            );
+
+        }
+    );
+
+
+    // =================================================
+    // GIRO SINCRONIZADO
+    // =================================================
+
+    socket.on(
+        "wheelSpin",
+        (data) => {
+
+            console.log(
+                "🎡 GIRO RECIBIDO:",
+                data
+            );
+
+
+            const targetRotation =
+                data.rotation;
+
+
+            const duration =
+                data.duration;
+
+
+            const startAt =
+                Number(data.startAt) ||
+                Date.now();
+
+
+            // Cancelar cualquier giro pendiente
+            if (window.adminSpinTimer) {
+
+                clearTimeout(
+                    window.adminSpinTimer
+                );
+
+            }
+
+
+            // Mantener la ruleta exactamente
+            // en su posición actual
+            adminWheel.style.transition =
+                "none";
+
+
+            adminWheel.style.transform =
+                `rotate(${currentRotation}deg)`;
+
+
+            // Forzar al navegador a aplicar
+            // la posición antes del giro
+            void adminWheel.offsetWidth;
+
+
+            const delay =
+                Math.max(
+                    0,
+                    startAt - Date.now()
+                );
+
+
+            window.adminSpinTimer =
+                setTimeout(
+                    () => {
+
+                        console.log(
+                            "🎡 INICIANDO GIRO ADMIN"
+                        );
+
+
+                        adminWheel.style.transition =
+                            `transform ${duration}ms cubic-bezier(0.05, 0.65, 0.1, 1)`;
+
+
+                        adminWheel.style.transform =
+                            `rotate(${targetRotation}deg)`;
+
+
+                        currentRotation =
+                            targetRotation;
+
+                    },
+                    delay
+                );
+
+        }
+    );
+
+
+    // =================================================
+    // RESULTADO
+    // =================================================
+
+    socket.on(
+        "wheelResult",
+        (data) => {
+
+            spinButton.disabled =
+                false;
+
+
+            const winner =
+                data?.winner;
+
+
+            if (!winner) {
+                return;
+            }
+
+
+            console.log(
+                "🏆 GANADOR RECIBIDO:",
+                winner.name
+            );
+
+
+            mostrarAdminWinner(
+                winner.name
+            );
+
+        }
+    );
+
+
+    // =================================================
+    // ERROR ADMIN
+    // =================================================
+
+    socket.on(
+        "adminError",
+        (data) => {
+
+            mostrarMensaje(
+                data.message
+            );
+
+
+            spinButton.disabled =
+                false;
+
+        }
+    );
+
+
+    // =================================================
+    // MENSAJE ADMIN
+    // =================================================
+
+    socket.on(
+        "adminMessage",
+        (data) => {
+
+            mostrarMensaje(
+                data.message
+            );
+
+        }
+    );
 
 }
 
@@ -277,8 +628,10 @@ addParticipant.addEventListener(
         const name =
             newName.value.trim();
 
+
         const color =
             newColor.value;
+
 
         if (!name) {
 
@@ -287,7 +640,20 @@ addParticipant.addEventListener(
             );
 
             return;
+
         }
+
+
+        if (!socket) {
+
+            mostrarMensaje(
+                "No hay conexión con el servidor."
+            );
+
+            return;
+
+        }
+
 
         socket.emit(
             "adminAddParticipant",
@@ -297,7 +663,9 @@ addParticipant.addEventListener(
             }
         );
 
-        newName.value = "";
+
+        newName.value =
+            "";
 
     }
 );
@@ -309,7 +677,9 @@ addParticipant.addEventListener(
 
 function renderParticipants() {
 
-    participantsList.innerHTML = "";
+    participantsList.innerHTML =
+        "";
+
 
     participantCount.textContent =
         participants.length;
@@ -323,6 +693,7 @@ function renderParticipants() {
              </div>`;
 
         return;
+
     }
 
 
@@ -332,6 +703,7 @@ function renderParticipants() {
             const row =
                 document.createElement("div");
 
+
             row.className =
                 "participant-row";
 
@@ -339,8 +711,10 @@ function renderParticipants() {
             const number =
                 document.createElement("span");
 
+
             number.className =
                 "participant-number";
+
 
             number.textContent =
                 index + 1;
@@ -349,12 +723,18 @@ function renderParticipants() {
             const name =
                 document.createElement("input");
 
-            name.type = "text";
+
+            name.type =
+                "text";
+
 
             name.value =
                 participant.name;
 
-            name.maxLength = 30;
+
+            name.maxLength =
+                30;
+
 
             name.className =
                 "participant-name";
@@ -363,10 +743,14 @@ function renderParticipants() {
             const color =
                 document.createElement("input");
 
-            color.type = "color";
+
+            color.type =
+                "color";
+
 
             color.value =
                 participant.color;
+
 
             color.className =
                 "participant-color";
@@ -375,8 +759,10 @@ function renderParticipants() {
             const save =
                 document.createElement("button");
 
+
             save.textContent =
                 "💾";
+
 
             save.className =
                 "small-button";
@@ -386,12 +772,22 @@ function renderParticipants() {
                 "click",
                 () => {
 
+                    if (!socket) {
+                        return;
+                    }
+
+
                     socket.emit(
                         "adminEditParticipant",
                         {
-                            id: participant.id,
-                            name: name.value.trim(),
-                            color: color.value
+                            id:
+                                participant.id,
+
+                            name:
+                                name.value.trim(),
+
+                            color:
+                                color.value
                         }
                     );
 
@@ -402,8 +798,10 @@ function renderParticipants() {
             const remove =
                 document.createElement("button");
 
+
             remove.textContent =
                 "🗑️";
+
 
             remove.className =
                 "small-button delete";
@@ -418,14 +816,22 @@ function renderParticipants() {
                             `¿Eliminar a ${participant.name}?`
                         );
 
+
                     if (!confirmar) {
                         return;
                     }
 
+
+                    if (!socket) {
+                        return;
+                    }
+
+
                     socket.emit(
                         "adminDeleteParticipant",
                         {
-                            id: participant.id
+                            id:
+                                participant.id
                         }
                     );
 
@@ -443,10 +849,14 @@ function renderParticipants() {
 
             row.appendChild(remove);
 
-            participantsList.appendChild(row);
+
+            participantsList.appendChild(
+                row
+            );
 
         }
     );
+
 }
 
 
@@ -456,7 +866,9 @@ function renderParticipants() {
 
 function crearAdminRuleta() {
 
-    adminWheel.innerHTML = "";
+    adminWheel.innerHTML =
+        "";
+
 
     if (participants.length === 0) {
 
@@ -464,14 +876,26 @@ function crearAdminRuleta() {
             "#333";
 
         return;
+
     }
 
 
     const total =
         participants.length;
 
+
     const angle =
         360 / total;
+
+
+    const radius =
+        Math.max(
+            90,
+            Math.min(
+                adminWheel.clientWidth,
+                adminWheel.clientHeight
+            ) * 0.34
+        );
 
 
     let gradient =
@@ -484,23 +908,32 @@ function crearAdminRuleta() {
             const start =
                 index * angle;
 
+
             const end =
                 (index + 1) * angle;
+
 
             gradient +=
                 `${participant.color} ${start}deg ${end}deg`;
 
-            if (index <
-                participants.length - 1) {
 
-                gradient += ", ";
+            if (
+                index <
+                participants.length - 1
+            ) {
+
+                gradient +=
+                    ", ";
+
             }
 
         }
     );
 
 
-    gradient += ")";
+    gradient +=
+        ")";
+
 
     adminWheel.style.background =
         gradient;
@@ -512,8 +945,10 @@ function crearAdminRuleta() {
             const label =
                 document.createElement("div");
 
+
             label.className =
                 "wheel-label";
+
 
             label.textContent =
                 participant.name;
@@ -524,38 +959,124 @@ function crearAdminRuleta() {
                 angle / 2;
 
 
-window.addEventListener("resize", () => {
-    crearAdminRuleta();
-});
-
             label.style.transform =
                 `rotate(${centerAngle}deg)
                  translateY(-${radius}px)
                  rotate(-${centerAngle}deg)`;
 
 
-            adminWheel.appendChild(label);
+            adminWheel.appendChild(
+                label
+            );
 
         }
     );
+
 }
 
 
 // =====================================================
-// GIRAR
+// ACTUALIZAR RULETA AL CAMBIAR TAMAÑO
 // =====================================================
 
-// =====================================================
-// GIRAR CON CUENTA REGRESIVA
-// =====================================================
+window.addEventListener(
+    "resize",
+    () => {
+
+        crearAdminRuleta();
+
+
+        adminWheel.style.transform =
+            `rotate(${currentRotation}deg)`;
+
+    }
+);
+
 
 // =====================================================
-// GIRAR CON CUENTA REGRESIVA
+// CONTROLAR PARTICIPANTES
 // =====================================================
 
-// =====================================================
-// GIRAR RULETA
-// =====================================================
+function actualizarParticipantesDemo() {
+
+    if (!demoParticipant) {
+        return;
+    }
+
+
+    const previousValue =
+        demoParticipant.value;
+
+
+    demoParticipant.innerHTML =
+        "";
+
+
+    const defaultOption =
+        document.createElement("option");
+
+
+    defaultOption.value =
+        "";
+
+
+    defaultOption.textContent =
+        "Selecciona un participante";
+
+
+    demoParticipant.appendChild(
+        defaultOption
+    );
+
+
+    participants.forEach(
+        (participant) => {
+
+            const option =
+                document.createElement("option");
+
+
+            option.value =
+                participant.id;
+
+
+            option.textContent =
+                participant.name;
+
+
+            demoParticipant.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    const stillExists =
+        participants.some(
+            participant =>
+                String(participant.id) ===
+                String(previousValue)
+        );
+
+
+    if (stillExists) {
+
+        demoParticipant.value =
+            previousValue;
+
+    }
+
+
+    if (controlParticipantCount) {
+
+        controlParticipantCount.textContent =
+            participants.length;
+
+    }
+
+}
+
 
 // =====================================================
 // GIRAR RULETA
@@ -569,39 +1090,15 @@ spinButton.addEventListener(
             return;
         }
 
+
         if (spinButton.disabled) {
             return;
         }
 
-        // ---------------------------------------------
-        // OBJETIVO OPCIONAL PARA LA DEMOSTRACIÓN
-        // ---------------------------------------------
 
-        const target = prompt(
-            "MODO DEMOSTRACIÓN\n\n" +
-            "Escribe el número de casilla que quieres que salga.\n" +
-            "Ejemplo: 7\n\n" +
-            "Si dejas vacío o cancelas, la ruleta será aleatoria."
-        );
+        spinButton.disabled =
+            true;
 
-        // ---------------------------------------------
-        // ENVIAR OBJETIVO AL SERVIDOR
-        // ---------------------------------------------
-
-        socket.emit(
-            "adminSetTarget",
-            {
-                target: target === null
-                    ? ""
-                    : target.trim()
-            }
-        );
-
-        // ---------------------------------------------
-        // INICIAR GIRO
-        // ---------------------------------------------
-
-        spinButton.disabled = true;
 
         socket.emit(
             "adminStartCountdown"
@@ -610,20 +1107,55 @@ spinButton.addEventListener(
     }
 );
 
+
+// =====================================================
+// CUENTA REGRESIVA
+// =====================================================
+
 function mostrarNumeroCuenta(numero) {
 
-    countdown.classList.remove("hidden");
+    if (!countdown) {
+        return;
+    }
 
-    countdown.textContent = numero;
 
-    countdown.style.animation = "none";
+    countdown.classList.remove(
+        "hidden"
+    );
+
+
+    countdown.textContent =
+        numero;
+
+
+    countdown.style.animation =
+        "none";
+
 
     void countdown.offsetWidth;
+
 
     countdown.style.animation =
         "countdownPulse 0.8s ease";
 
+
+    if (numero === "START!") {
+
+        setTimeout(
+            () => {
+
+                countdown.classList.add(
+                    "hidden"
+                );
+
+            },
+            700
+        );
+
+    }
+
 }
+
 
 // =====================================================
 // GANADOR
@@ -647,12 +1179,16 @@ function mostrarMensaje(text) {
     adminMessage.textContent =
         text;
 
-    setTimeout(() => {
 
-        adminMessage.textContent =
-            "";
+    setTimeout(
+        () => {
 
-    }, 4000);
+            adminMessage.textContent =
+                "";
+
+        },
+        4000
+    );
 
 }
 
@@ -664,11 +1200,27 @@ function mostrarMensaje(text) {
 function escapeHTML(text) {
 
     return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
 }
 
 
@@ -681,18 +1233,25 @@ const savedAdminToken =
         "adminToken"
     );
 
+
 if (savedAdminToken) {
 
     entrarAlPanel(
         savedAdminToken
     );
+
 }
+
+
 // =====================================================
 // ACTUALIZAR
 // =====================================================
 
 const refreshButton =
-    document.getElementById("refreshButton");
+    document.getElementById(
+        "refreshButton"
+    );
+
 
 if (refreshButton) {
 
@@ -713,7 +1272,10 @@ if (refreshButton) {
 // =====================================================
 
 const logoutButton =
-    document.getElementById("logoutButton");
+    document.getElementById(
+        "logoutButton"
+    );
+
 
 if (logoutButton) {
 
@@ -725,22 +1287,32 @@ if (logoutButton) {
                 "adminToken"
             );
 
+
             if (socket) {
+
                 socket.disconnect();
+
             }
 
-            location.href = "/admin.html";
+
+            location.href =
+                "/admin.html";
 
         }
     );
 
 }
+
+
 // =====================================================
 // CAMBIAR CLAVE DE ACCESO
 // =====================================================
 
 const resetKeyButton =
-    document.getElementById("resetKeyButton");
+    document.getElementById(
+        "resetKeyButton"
+    );
+
 
 if (resetKeyButton) {
 
@@ -749,11 +1321,15 @@ if (resetKeyButton) {
         () => {
 
             if (!socket) {
+
                 mostrarMensaje(
                     "No hay conexión con el servidor."
                 );
+
                 return;
+
             }
+
 
             const confirmar =
                 confirm(
@@ -761,19 +1337,30 @@ if (resetKeyButton) {
                     "La clave anterior dejará de funcionar."
                 );
 
+
             if (!confirmar) {
                 return;
             }
 
-            resetKeyButton.disabled = true;
+
+            resetKeyButton.disabled =
+                true;
+
 
             socket.emit(
                 "adminResetAccessKey"
             );
 
-            setTimeout(() => {
-                resetKeyButton.disabled = false;
-            }, 1000);
+
+            setTimeout(
+                () => {
+
+                    resetKeyButton.disabled =
+                        false;
+
+                },
+                1000
+            );
 
         }
     );
