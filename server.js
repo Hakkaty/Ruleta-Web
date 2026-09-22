@@ -658,10 +658,24 @@ socket.on("adminStartCountdown", () => {
 
     }, 3000);
 
-setTimeout(() => { if (!roulette.countdown) return; roulette.countdown = false; // Todos los dispositivos reciben la orden ahora // y comienzan exactamente 1 segundo después. const startAt = Date.now() + 1000; realizarGiro(startAt); }, 3000);
+setTimeout(() => { 
+    if (!roulette.countdown) return; 
+    
+    roulette.countdown = false; 
+    
+    // Todos los dispositivos reciben la orden ahora // y comienzan exactamente 1 segundo después. 
+    
+    const startAt = Date.now() + 1000; 
+    
+    realizarGiro(startAt);
+
+}, 3000);
 
 });
 
+// -------------------------------------------------
+// FUNCIÓN REALIZAR GIRO
+// -------------------------------------------------
 // -------------------------------------------------
 // FUNCIÓN REALIZAR GIRO
 // -------------------------------------------------
@@ -736,13 +750,18 @@ function realizarGiro(startAt = Date.now()) {
     const segmentAngle =
         360 / participants.length;
 
-    // El puntero está arriba (270 grados)
-const targetAngle = 360 - ( winnerIndex * segmentAngle + segmentAngle / 2 );
+    // El puntero está arriba
+    const targetAngle =
+        360 - (
+            winnerIndex * segmentAngle +
+            segmentAngle / 2
+        );
+
     // Normalizar rotación actual
     const currentNormalized =
         ((roulette.rotation % 360) + 360) % 360;
 
-    let targetNormalized =
+    const targetNormalized =
         ((targetAngle % 360) + 360) % 360;
 
     let difference =
@@ -771,45 +790,47 @@ const targetAngle = 360 - ( winnerIndex * segmentAngle + segmentAngle / 2 );
     // El objetivo solo se utiliza una vez
     roulette.forcedTarget = null;
 
-const duration = 14500;
+    const duration = 14500;
 
-io.to("ruleta").emit("wheelSpin", {
-    rotation: roulette.rotation,
-    duration,
-    startAt
-});
-
-// Esperamos hasta que realmente termine la animación,
-// contando también el tiempo que falta hasta startAt.
-const finishDelay =
-    Math.max(0, startAt - Date.now()) + duration;
-
-setTimeout(() => {
-
-    roulette.spinning = false;
-    roulette.winner = winner;
-
-    // Primero dejamos la ruleta exactamente en su posición final.
-    broadcastState();
-
-    // Después mostramos el ganador.
-    io.to("ruleta").emit("wheelResult", {
-        winner: roulette.winner
+    io.to("ruleta").emit("wheelSpin", {
+        rotation: roulette.rotation,
+        duration,
+        startAt
     });
 
-}, finishDelay);
+    // Esperamos hasta que realmente termine la animación,
+    // contando también el tiempo que falta hasta startAt.
+    const finishDelay =
+        Math.max(0, startAt - Date.now()) +
+        duration;
+
+    setTimeout(() => {
+
+        roulette.spinning = false;
+        roulette.winner = winner;
+
+        // Primero dejamos la ruleta exactamente en su posición final.
+        broadcastState();
+
+        // Después mostramos el ganador.
+        io.to("ruleta").emit("wheelResult", {
+            winner: roulette.winner
+        });
+
+    }, finishDelay);
 }
-    // -------------------------------------------------
-    // DESCONEXIÓN
-    // -------------------------------------------------
 
-    socket.on("disconnect", () => {
+// -------------------------------------------------
+// DESCONEXIÓN
+// -------------------------------------------------
 
-        console.log(
-            "Cliente desconectado:",
-            socket.id
-        );
-    });
+socket.on("disconnect", () => {
+
+    console.log(
+        "Cliente desconectado:",
+        socket.id
+    );
+});
 
 });
 
